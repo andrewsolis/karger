@@ -4,6 +4,8 @@
 // Custom headers
 #include "ECLgraph.h"
 
+
+
 int main(const int argc, char* argv[]) {
 
 
@@ -21,6 +23,8 @@ int main(const int argc, char* argv[]) {
     std::cout << "input: " <<  argv[1] << std::endl;
     std::cout << "nodes: " <<  g.nodes << std::endl;
     std::cout << "edges: " <<  g.edges << std::endl;
+
+    std::cout << g.nindex[0] << std::endl;
 
     // clean up
     freeECLgraph(g);
