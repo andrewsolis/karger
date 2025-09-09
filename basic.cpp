@@ -22,8 +22,8 @@ ECLgraph createBasic() {
     g.nodes = 4;
     g.edges = 6;
 
-    g.nindex = new int[4]  { 0, 3, 6, 9 };
-    g.nlist  = new int[12] { 0, 1, 5, 0, 2, 4, 4, 1, 3, 5, 2, 3 };
+    g.nindex = new int[5]  { 0, 3, 6, 9, 12 };
+    g.nlist  = new int[12] { 1, 2, 3, 0, 2, 3, 0, 1, 3, 0, 1, 2 };
 
     return g;
 }
@@ -46,7 +46,7 @@ void runBasic(const char* output_file) {
     std::cout << std::endl;
 
     std::cout << "nlist values: ";
-    for (int i = 0; i < g.edges * 2; i++) {
+    for (int i = 0; i < 12; i++) {
         std::cout << g.nlist[i] << " ";
     }
     std::cout << std::endl;
