@@ -3,5 +3,6 @@ project(Karger)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(Karger karger.cpp ECLgraph.h)
+add_executable(Karger ECLgraph.h
+        ECL-CC_11.cpp)
 add_executable(Basic basic.cpp ECLgraph.h)

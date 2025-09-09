@@ -33,7 +33,7 @@ void freeBasic(ECLgraph &g) {
     delete[] g.nlist;
 }
 
-void runBasic() {
+void runBasic(const char* output_file) {
     ECLgraph g = createBasic();
 
     std::cout << "nodes: " <<  g.nodes << std::endl;
@@ -51,16 +51,17 @@ void runBasic() {
     }
     std::cout << std::endl;
 
-    writeECLgraph(g, R"(C:\Users\Andrew Solis\CLionProjects\Karger\ECLGraphs\basic.egr)");
+    writeECLgraph(g, output_file);
 
-    freeBasic(g);
     freeECLgraph(g);
 }
 
 int main(const int argc, char* argv[]) {
     std::cout << "Create Basic Graph v0.1" << std::endl;
 
-    freeBasic(g);
-    freeECLgraph(g);
+    if (argc != 2) {fprintf(stderr, "USAGE: %s output_file_name\n\n", argv[0]);  exit(-1);}
+
+    runBasic(argv[1]);
+
     return 0;
 }
