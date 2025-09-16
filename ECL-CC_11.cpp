@@ -138,7 +138,7 @@ static void verify(const int v, const int id, const int* const __restrict__ nidx
   }
 }
 
-void permutation(const int nodes, int * const __restrict__ nidx, int * const __restrict__ nlist) {
+std::vector< std::pair<int, int> > permutation(const int nodes, int * const __restrict__ nidx, int * const __restrict__ nlist) {
 
   std::set< std::pair<int,int> > edgelist_set;
   for (int i = 0; i < nodes; i++) {
@@ -158,7 +158,7 @@ void permutation(const int nodes, int * const __restrict__ nidx, int * const __r
   }
 
   std::vector< std::pair<int,int> > edgelist_vec(edgelist_set.begin(), edgelist_set.end());
-
+  return edgelist_vec;
 }
 
 int main(int argc, char* argv[])
@@ -183,15 +183,29 @@ int main(int argc, char* argv[])
   printf("minimum degree: %d edges\n", mindeg);
   printf("maximum degree: %d edges\n", maxdeg);
 
+  // get initial permutation
+  std::vector< std::pair<int,int> > edgelist = permutation(g.nodes, g.nindex, g.nlist);
+
+  printf("initial edgelist\n");
+  for (std::pair<int,int> edge: edgelist) {
+    printf("%d %d\n", edge.first, edge.second);
+  }
+  printf("\n");
+
+  // only use half of vector for now
+  std::vector< std::pair<int,int> > edgelist_half(edgelist.begin(), edgelist.begin() + edgelist.size() / 2);
+  printf("subvector edgelist\n");
+  for (std::pair<int,int> edge: edgelist_half) {
+    printf("%d %d\n", edge.first, edge.second);
+  }
+  printf("\n");
+
   struct timeval start, end;
   gettimeofday(&start, NULL);
 
   init(g.nodes, g.nindex, g.nlist, nodestatus);
   compute(g.nodes, g.nindex, g.nlist, nodestatus);
   flatten(g.nodes, nodestatus);
-
-  // AJS: create permutation
-  permutation(g.nodes, g.nindex, g.nlist);
 
   gettimeofday(&end, NULL);
   double runtime = end.tv_sec + end.tv_usec / 1000000.0 - start.tv_sec - start.tv_usec / 1000000.0;
