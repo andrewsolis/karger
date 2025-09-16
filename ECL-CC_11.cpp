@@ -47,7 +47,7 @@ June 2018.
 #include <sys/time.h>
 #include "ECLgraph.h"
 
-void init(const int nodes, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat)
+void init(const int nodes, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat, const std::vector< std::pair<int, int> >& edgelist)
 {
   #pragma omp parallel for schedule(guided) default(none) shared(nodes, nidx, nlist, nstat)
   for (int v = 0; v < nodes; v++) {
@@ -56,7 +56,18 @@ void init(const int nodes, const int* const __restrict__ nidx, const int* const 
     int m = v;
     int i = beg;
     while ((m == v) && (i < end)) {
-      m = std::min(m, nlist[i]);
+
+      // If pair exists in edgelist to avoid then skip
+      std::pair<int,int> edge1 = {m, nlist[i]};
+      std::pair<int,int> edge2 = {nlist[i], m};
+      if (std::find(edgelist.begin(), edgelist.end(), edge1) == edgelist.end()
+        && std::find(edgelist.begin(), edgelist.end(), edge2) == edgelist.end()) {
+        m = std::min(m, nlist[i]);
+      }
+      else {
+        printf("Avoiding %d,%d\n", edge1.first, edge1.second);
+      }
+
       i++;
     }
     nstat[v] = m;
@@ -203,7 +214,7 @@ int main(int argc, char* argv[])
   struct timeval start, end;
   gettimeofday(&start, NULL);
 
-  init(g.nodes, g.nindex, g.nlist, nodestatus);
+  init(g.nodes, g.nindex, g.nlist, nodestatus, edgelist_half);
   compute(g.nodes, g.nindex, g.nlist, nodestatus);
   flatten(g.nodes, nodestatus);
 
