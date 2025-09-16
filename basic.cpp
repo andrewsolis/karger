@@ -20,7 +20,7 @@ ECLgraph createBasic() {
     ECLgraph g{};
 
     g.nodes = 4;
-    g.edges = 6;
+    g.edges = 12;
 
     g.nindex = new int[5]  { 0, 3, 6, 9, 12 };
     g.nlist  = new int[12] { 1, 2, 3, 0, 2, 3, 0, 1, 3, 0, 1, 2 };

@@ -43,6 +43,7 @@ June 2018.
 #include <stdlib.h>
 #include <stdio.h>
 #include <set>
+#include <unordered_set>
 #include <sys/time.h>
 #include "ECLgraph.h"
 
@@ -137,6 +138,29 @@ static void verify(const int v, const int id, const int* const __restrict__ nidx
   }
 }
 
+void permutation(const int nodes, int * const __restrict__ nidx, int * const __restrict__ nlist) {
+
+  std::set< std::pair<int,int> > edgelist_set;
+  for (int i = 0; i < nodes; i++) {
+
+    const int beg = nidx[i];
+    const int end = nidx[i + 1];
+
+    for (int j = beg; j < end; j++) {
+
+      std::pair<int,int> edge1(i, nlist[j]);
+      std::pair<int,int> edge2( nlist[j], i);
+
+      if (!edgelist_set.contains(edge1) && !edgelist_set.contains(edge2)) {
+        edgelist_set.insert(edge1);
+      }
+    }
+  }
+
+  std::vector< std::pair<int,int> > edgelist_vec(edgelist_set.begin(), edgelist_set.end());
+
+}
+
 int main(int argc, char* argv[])
 {
   printf("ECL-CC v1.1 OpenMP (%s)\n", __FILE__);
@@ -165,6 +189,9 @@ int main(int argc, char* argv[])
   init(g.nodes, g.nindex, g.nlist, nodestatus);
   compute(g.nodes, g.nindex, g.nlist, nodestatus);
   flatten(g.nodes, nodestatus);
+
+  // AJS: create permutation
+  permutation(g.nodes, g.nindex, g.nlist);
 
   gettimeofday(&end, NULL);
   double runtime = end.tv_sec + end.tv_usec / 1000000.0 - start.tv_sec - start.tv_usec / 1000000.0;
