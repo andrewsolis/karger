@@ -59,15 +59,13 @@ void init(const int nodes, const int* const __restrict__ nidx, const int* const 
     int i = beg;
     while ((m == v) && (i < end)) {
 
-      // If pair does not exist in edgelist then run if statement
-      std::pair<int,int> edge1 = {m, nlist[i]};
-      std::pair<int,int> edge2 = {nlist[i], m};
-      if (std::find(edgelist.begin(), edgelist.end(), edge1) == edgelist.end()
-        && std::find(edgelist.begin(), edgelist.end(), edge2) == edgelist.end()) {
+      std::pair<int,int> edge = {std::min(m, nlist[i]), std::max(m, nlist[i])};
+
+      if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
         m = std::min(m, nlist[i]);
       }
       else {
-        printf("Avoiding %d,%d\n", edge1.first, edge1.second);
+        printf("Avoiding %d,%d\n", edge.first, edge.second);
       }
 
       i++;
@@ -102,13 +100,9 @@ void compute(const int nodes, const int* const __restrict__ nidx, const int* con
       int vstat = representative(v, nstat);
       for (int i = beg; i < end; i++) {
 
-        // If pair does not exists in edgelist then run if function
-        std::pair<int,int> edge1 = {v, nlist[i]};
-        std::pair<int,int> edge2 = {nlist[i], v};
+        std::pair<int,int> edge = {std::min(v, nlist[i]), std::max(v, nlist[i])};
 
-        if (std::find(edgelist.begin(), edgelist.end(), edge1) == edgelist.end()
-          && std::find(edgelist.begin(), edgelist.end(), edge2) == edgelist.end())
-        {
+        if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
 
           const int nli = nlist[i];
           if (v > nli) {
@@ -135,7 +129,7 @@ void compute(const int nodes, const int* const __restrict__ nidx, const int* con
 
         }
         else {
-          printf("Avoiding %d,%d\n", edge1.first, edge1.second);
+          printf("Avoiding %d,%d\n", edge.first, edge.second);
         }
       }
     }
@@ -163,12 +157,9 @@ static void verify(const int v, const int id, const int* const __restrict__ nidx
     nstat[v] = -1;
     for (int i = nidx[v]; i < nidx[v + 1]; i++) {
 
-      // If pair exists in edgelist to avoid then skip
-      std::pair<int,int> edge1 = {v, nlist[i]};
-      std::pair<int,int> edge2 = {nlist[i], v};
+      std::pair<int,int> edge = {std::min(v, nlist[i]), std::max(v, nlist[i])};
 
-      if (std::find(edgelist.begin(), edgelist.end(), edge1) == edgelist.end()
-        && std::find(edgelist.begin(), edgelist.end(), edge2) == edgelist.end()) {
+      if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
         verify(nlist[i], id, nidx, nlist, nstat, edgelist);
       }
     }
@@ -185,15 +176,13 @@ std::vector< std::pair<int, int> > permutation(const int nodes, int * const __re
 
     for (int j = beg; j < end; j++) {
 
-      std::pair<int,int> edge1(i, nlist[j]);
-      std::pair<int,int> edge2( nlist[j], i);
-
-      if (!edgelist_set.contains(edge1) && !edgelist_set.contains(edge2)) {
-        edgelist_set.insert(edge1);
-      }
+      int first = std::min(i, nlist[j]);
+      int second = std::max(i, nlist[j]);
+      std::pair<int,int> edge(first, second);
+        edgelist_set.insert(edge);
     }
-  }
 
+  }
 
   std::vector< std::pair<int,int> > edgelist_vec(edgelist_set.begin(), edgelist_set.end());
   return edgelist_vec;
@@ -265,12 +254,9 @@ int main(int argc, char* argv[])
   for (int v = 0; v < g.nodes; v++) {
     for (int i = g.nindex[v]; i < g.nindex[v + 1]; i++) {
 
-      // If pair exists in edgelist to avoid then skip
-      std::pair<int,int> edge1 = {v, g.nlist[i]};
-      std::pair<int,int> edge2 = {g.nlist[i], v};
+      std::pair<int,int> edge = {std::min(v, g.nlist[i]), std::max(v, g.nlist[i])};
 
-      if (std::find(edgelist_half.begin(), edgelist_half.end(), edge1) == edgelist_half.end()
-        && std::find(edgelist_half.begin(), edgelist_half.end(), edge2) == edgelist_half.end()) {
+      if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
 
         if (nodestatus[g.nlist[i]] != nodestatus[v]) {fprintf(stderr, "ERROR: found adjacent nodes in different components\n\n");  exit(-1);}
       }
