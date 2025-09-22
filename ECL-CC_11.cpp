@@ -48,9 +48,18 @@ June 2018.
 #include <sys/time.h>
 #include "ECLgraph.h"
 
+// check to see if edge exists in edgelist to be avoided
+static bool edgeverify(int v1, int v2, const std::vector< std::pair<int, int> >& edgelist) {
+  std::pair<int,int> edge = {std::min(v1, v2), std::max(v1, v2)};
+
+  if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
+    return false;
+  }
+  return true;
+}
+
 void init(const int nodes, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat, const std::vector< std::pair<int, int> >& edgelist)
 {
-  printf("init function\n");
   #pragma omp parallel for schedule(guided) default(none) shared(nodes, nidx, nlist, nstat)
   for (int v = 0; v < nodes; v++) {
     const int beg = nidx[v];
@@ -59,15 +68,9 @@ void init(const int nodes, const int* const __restrict__ nidx, const int* const 
     int i = beg;
     while ((m == v) && (i < end)) {
 
-      std::pair<int,int> edge = {std::min(m, nlist[i]), std::max(m, nlist[i])};
-
-      if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
+      if (!edgeverify(m, nlist[i], edgelist)){
         m = std::min(m, nlist[i]);
       }
-      else {
-        printf("Avoiding %d,%d\n", edge.first, edge.second);
-      }
-
       i++;
     }
     nstat[v] = m;
@@ -90,7 +93,6 @@ static inline int representative(const int idx, int* const __restrict__ nstat)
 
 void compute(const int nodes, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat, const std::vector< std::pair<int, int> >& edgelist)
 {
-  printf("compute function\n");
   #pragma omp parallel for schedule(guided) default(none) shared(nodes, nidx, nlist, nstat)
   for (int v = 0; v < nodes; v++) {
     const int vstat = nstat[v];
@@ -100,9 +102,8 @@ void compute(const int nodes, const int* const __restrict__ nidx, const int* con
       int vstat = representative(v, nstat);
       for (int i = beg; i < end; i++) {
 
-        std::pair<int,int> edge = {std::min(v, nlist[i]), std::max(v, nlist[i])};
+        if (!edgeverify(v, nlist[i], edgelist)){
 
-        if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
 
           const int nli = nlist[i];
           if (v > nli) {
@@ -128,9 +129,6 @@ void compute(const int nodes, const int* const __restrict__ nidx, const int* con
           }
 
         }
-        else {
-          printf("Avoiding %d,%d\n", edge.first, edge.second);
-        }
       }
     }
   }
@@ -152,14 +150,11 @@ void flatten(const int nodes, int* const __restrict__ nstat)
 static void verify(const int v, const int id, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat, const std::vector< std::pair<int, int> >& edgelist)
 {
   if (nstat[v] >= 0) {
-    printf("nstat[%d] = %d\n", v, id);
     if (nstat[v] != id) {fprintf(stderr, "ERROR: found incorrect ID value\n\n");  exit(-1);}
     nstat[v] = -1;
     for (int i = nidx[v]; i < nidx[v + 1]; i++) {
 
-      std::pair<int,int> edge = {std::min(v, nlist[i]), std::max(v, nlist[i])};
-
-      if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
+      if (!edgeverify(v, nlist[i], edgelist)){
         verify(nlist[i], id, nidx, nlist, nstat, edgelist);
       }
     }
@@ -213,19 +208,8 @@ int main(int argc, char* argv[])
   // get initial permutation
   std::vector< std::pair<int,int> > edgelist = permutation(g.nodes, g.nindex, g.nlist);
 
-  printf("initial edgelist\n");
-  for (std::pair<int,int> edge: edgelist) {
-    printf("%d %d\n", edge.first, edge.second);
-  }
-  printf("\n");
-
   // only use half of vector for now
   std::vector< std::pair<int,int> > edgelist_half(edgelist.begin(), edgelist.begin() + edgelist.size() / 2);
-  printf("subvector edgelist\n");
-  for (std::pair<int,int> edge: edgelist_half) {
-    printf("%d %d\n", edge.first, edge.second);
-  }
-  printf("\n");
 
   struct timeval start, end;
   gettimeofday(&start, NULL);
@@ -247,16 +231,12 @@ int main(int argc, char* argv[])
   }
   printf("number of connected components: %d\n", (int)s1.size());
 
-  for (const int & cc : s1) {
-    printf("component %d\n", cc);
-  }
 
   for (int v = 0; v < g.nodes; v++) {
     for (int i = g.nindex[v]; i < g.nindex[v + 1]; i++) {
 
-      std::pair<int,int> edge = {std::min(v, g.nlist[i]), std::max(v, g.nlist[i])};
+      if (!edgeverify(v, g.nlist[i], edgelist)){
 
-      if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
 
         if (nodestatus[g.nlist[i]] != nodestatus[v]) {fprintf(stderr, "ERROR: found adjacent nodes in different components\n\n");  exit(-1);}
       }
@@ -268,9 +248,6 @@ int main(int argc, char* argv[])
     if (nodestatus[v] < 0) {fprintf(stderr, "ERROR: found negative component number\n\n");  exit(-1);}
   }
 
-  for (int v = 0; v < g.nodes; v++) {
-    printf("node %d status: %d\n", v, nodestatus[v]);
-  }
 
   std::set<int> s2;
   int count = 0;
