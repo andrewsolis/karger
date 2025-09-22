@@ -62,17 +62,17 @@ void init(const int nodes, const int* const __restrict__ nidx, const int* const 
 {
   #pragma omp parallel for schedule(guided) default(none) shared(nodes, nidx, nlist, nstat)
   for (int v = 0; v < nodes; v++) {
-    const int beg = nidx[v];
-    const int end = nidx[v + 1];
+    // const int beg = nidx[v];
+    // const int end = nidx[v + 1];
     int m = v;
-    int i = beg;
-    while ((m == v) && (i < end)) {
-
-      if (!edgeverify(m, nlist[i], edgelist)){
-        m = std::min(m, nlist[i]);
-      }
-      i++;
-    }
+    // int i = beg;
+    // while ((m == v) && (i < end)) {
+    //
+    //   if (!edgeverify(m, nlist[i], edgelist)){
+    //     m = std::min(m, nlist[i]);
+    //   }
+    //   i++;
+    // }
     nstat[v] = m;
   }
 }
@@ -95,17 +95,16 @@ void compute(const int nodes, const int* const __restrict__ nidx, const int* con
 {
   #pragma omp parallel for schedule(guided) default(none) shared(nodes, nidx, nlist, nstat)
   for (int v = 0; v < nodes; v++) {
-    const int vstat = nstat[v];
-    if (v != vstat) {
+    // const int vstat = nstat[v];
+    // if (v  != vstat) {
       const int beg = nidx[v];
       const int end = nidx[v + 1];
       int vstat = representative(v, nstat);
       for (int i = beg; i < end; i++) {
 
-        if (!edgeverify(v, nlist[i], edgelist)){
+        const int nli = nlist[i];
 
-
-          const int nli = nlist[i];
+        if (!edgeverify(v, nli, edgelist)){
           if (v > nli) {
             int ostat = representative(nli, nstat);
             bool repeat;
@@ -130,7 +129,7 @@ void compute(const int nodes, const int* const __restrict__ nidx, const int* con
 
         }
       }
-    }
+    // }
   }
 }
 
