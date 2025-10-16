@@ -52,10 +52,7 @@ June 2018.
 static bool edgeverify(int v1, int v2, const std::vector< std::pair<int, int> >& edgelist) {
   std::pair<int,int> edge = {std::min(v1, v2), std::max(v1, v2)};
 
-  if (std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end()) {
-    return false;
-  }
-  return true;
+  return !( std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end() );
 }
 
 void init(const int nodes, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat, const std::vector< std::pair<int, int> >& edgelist)
