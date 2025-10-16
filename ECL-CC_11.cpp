@@ -157,7 +157,7 @@ static void verify(const int v, const int id, const int* const __restrict__ nidx
   }
 }
 
-std::vector< std::pair<int, int> > permutation(const int nodes, int * const __restrict__ nidx, int * const __restrict__ nlist) {
+std::vector< std::pair<int, int> > edgelist_create(const int nodes, int * const __restrict__ nidx, int * const __restrict__ nlist) {
 
   std::set< std::pair<int,int> > edgelist_set;
   for (int i = 0; i < nodes; i++) {
@@ -201,63 +201,87 @@ int main(int argc, char* argv[])
   printf("minimum degree: %d edges\n", mindeg);
   printf("maximum degree: %d edges\n", maxdeg);
 
-  // get initial permutation
-  std::vector< std::pair<int,int> > edgelist = permutation(g.nodes, g.nindex, g.nlist);
-
-  // only use half of vector for now
-  std::vector< std::pair<int,int> > edgelist_half(edgelist.begin(), edgelist.begin() + edgelist.size() / 2);
-
-  struct timeval start, end;
-  gettimeofday(&start, NULL);
-
-  init(g.nodes, g.nindex, g.nlist, nodestatus, edgelist_half);
-  compute(g.nodes, g.nindex, g.nlist, nodestatus, edgelist_half);
-  flatten(g.nodes, nodestatus);
-
-  gettimeofday(&end, NULL);
-  double runtime = end.tv_sec + end.tv_usec / 1000000.0 - start.tv_sec - start.tv_usec / 1000000.0;
-
-  printf("compute time: %.4f s\n", runtime);
-  printf("throughput: %.3f Mnodes/s\n", g.nodes * 0.000001 / runtime);
-  printf("throughput: %.3f Medges/s\n", g.edges * 0.000001 / runtime);
-
-  std::set<int> s1;
-  for (int v = 0; v < g.nodes; v++) {
-    s1.insert(nodestatus[v]);
-  }
-  printf("number of connected components: %d\n", (int)s1.size());
+  // get initial list of edges
+  std::vector< std::pair<int,int> > edgelist = edgelist_create(g.nodes, g.nindex, g.nlist);
 
 
-  for (int v = 0; v < g.nodes; v++) {
-    for (int i = g.nindex[v]; i < g.nindex[v + 1]; i++) {
+  int loopcount = 0;
+  do {
+    // only use half of vector at the beginning
+    std::vector< std::pair<int,int> > edgelist_cut(edgelist.begin(), edgelist.begin() + edgelist.size() / 2);
 
-      if (!edgeverify(v, g.nlist[i], edgelist)){
+    struct timeval start, end;
 
+    bool found = false;
 
-        if (nodestatus[g.nlist[i]] != nodestatus[v]) {fprintf(stderr, "ERROR: found adjacent nodes in different components\n\n");  exit(-1);}
+    while( !found ) {
+
+      gettimeofday(&start, NULL);
+
+      init(g.nodes, g.nindex, g.nlist, nodestatus, edgelist_cut);
+      compute(g.nodes, g.nindex, g.nlist, nodestatus, edgelist_cut);
+      flatten(g.nodes, nodestatus);
+
+      gettimeofday(&end, NULL);
+      double runtime = end.tv_sec + end.tv_usec / 1000000.0 - start.tv_sec - start.tv_usec / 1000000.0;
+
+      // printf("compute time: %.4f s\n", runtime);
+      // printf("throughput: %.3f Mnodes/s\n", g.nodes * 0.000001 / runtime);
+      // printf("throughput: %.3f Medges/s\n", g.edges * 0.000001 / runtime);
+
+      std::set<int> s1;
+      for (int v = 0; v < g.nodes; v++) {
+        s1.insert(nodestatus[v]);
       }
+      // printf("number of connected components: %d\n", (int)s1.size());
 
+      found = !found;
     }
-  }
 
-  for (int v = 0; v < g.nodes; v++) {
-    if (nodestatus[v] < 0) {fprintf(stderr, "ERROR: found negative component number\n\n");  exit(-1);}
-  }
-
-
-  std::set<int> s2;
-  int count = 0;
-  for (int v = 0; v < g.nodes; v++) {
-    if (nodestatus[v] >= 0) {
-      count++;
-      s2.insert(nodestatus[v]);
-      verify(v, nodestatus[v], g.nindex, g.nlist, nodestatus, edgelist_half);
+    std::set<int> s1;
+    for (int v = 0; v < g.nodes; v++) {
+      s1.insert(nodestatus[v]);
     }
-  }
-  if (s1.size() != s2.size()) {fprintf(stderr, "ERROR: number of components do not match\n\n");  exit(-1);}
-  if (s1.size() != (unsigned)count) {fprintf(stderr, "ERROR: component IDs are not unique\n\n");  exit(-1);}
+    printf("number of connected components: %d\n", (int)s1.size());
 
-  printf("all good\n\n");
+    for (int v = 0; v < g.nodes; v++) {
+      for (int i = g.nindex[v]; i < g.nindex[v + 1]; i++) {
+
+        if (!edgeverify(v, g.nlist[i], edgelist)){
+
+
+          if (nodestatus[g.nlist[i]] != nodestatus[v]) {fprintf(stderr, "ERROR: found adjacent nodes in different components\n\n");  exit(-1);}
+        }
+
+      }
+    }
+
+    for (int v = 0; v < g.nodes; v++) {
+      if (nodestatus[v] < 0) {fprintf(stderr, "ERROR: found negative component number\n\n");  exit(-1);}
+    }
+
+
+    std::set<int> s2;
+    int count = 0;
+    for (int v = 0; v < g.nodes; v++) {
+      if (nodestatus[v] >= 0) {
+        count++;
+        s2.insert(nodestatus[v]);
+        verify(v, nodestatus[v], g.nindex, g.nlist, nodestatus, edgelist_cut);
+      }
+    }
+    if (s1.size() != s2.size()) {fprintf(stderr, "ERROR: number of components do not match\n\n");  exit(-1);}
+    if (s1.size() != (unsigned)count) {fprintf(stderr, "ERROR: component IDs are not unique\n\n");  exit(-1);}
+
+    printf("all good\n\n");
+
+    loopcount++;
+
+    if (loopcount >= 1000 ) {
+      break;
+    }
+
+  } while (std::next_permutation(edgelist.begin(), edgelist.end()));
 
   delete [] nodestatus;
   return 0;

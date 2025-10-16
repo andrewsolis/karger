@@ -12,6 +12,8 @@ int main(int argc, char* argv[])
   const char* outpath = "./generatedGraphs";
   #ifdef __linux__
     mkdir(outpath, 0700);
+  #elif _WIN64
+    mkdir(outpath);
   #else
     mkdir(outpath, 0070);
   #endif
