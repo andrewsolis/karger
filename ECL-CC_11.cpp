@@ -62,17 +62,17 @@ void init(const int nodes, const int* const __restrict__ nidx, const int* const 
 {
   #pragma omp parallel for schedule(guided) default(none) shared(nodes, nidx, nlist, nstat)
   for (int v = 0; v < nodes; v++) {
-    // const int beg = nidx[v];
-    // const int end = nidx[v + 1];
+    const int beg = nidx[v];
+    const int end = nidx[v + 1];
     int m = v;
-    // int i = beg;
-    // while ((m == v) && (i < end)) {
-    //
-    //   if (!edgeverify(m, nlist[i], edgelist)){
-    //     m = std::min(m, nlist[i]);
-    //   }
-    //   i++;
-    // }
+    int i = beg;
+    while ((m == v) && (i < end)) {
+
+      if (!edgeverify(m, nlist[i], edgelist)){
+        m =  nlist[i];
+      }
+      i++;
+    }
     nstat[v] = m;
   }
 }
