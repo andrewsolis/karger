@@ -49,7 +49,7 @@ June 2018.
 #include "ECLgraph.h"
 
 // check to see if edge exists in edgelist to be avoided
-static bool edgeverify(int v1, int v2, const std::vector< std::pair<int, int> >& edgelist) {
+static inline bool edgeverify(int v1, int v2, const std::vector< std::pair<int, int> >& edgelist) {
   std::pair<int,int> edge = {std::min(v1, v2), std::max(v1, v2)};
 
   return !( std::find(edgelist.begin(), edgelist.end(), edge) == edgelist.end() );
