@@ -204,11 +204,17 @@ int main(int argc, char* argv[])
   // get initial list of edges
   std::vector< std::pair<int,int> > edgelist = edgelist_create(g.nodes, g.nindex, g.nlist);
 
+  if (edgelist.empty()) {fprintf(stderr, "ERROR: no edges found\n\n");  exit(-1);}
 
-  int loopcount = 0;
   do {
+
     // only use half of vector at the beginning
     std::vector< std::pair<int,int> > edgelist_cut(edgelist.begin(), edgelist.begin() + edgelist.size() / 2);
+
+    // if one vector is left then make sure we try just removing this one vector
+    if (edgelist_cut.empty()) {
+      edgelist_cut = edgelist;
+    }
 
     struct timeval start, end;
 
@@ -233,9 +239,13 @@ int main(int argc, char* argv[])
       for (int v = 0; v < g.nodes; v++) {
         s1.insert(nodestatus[v]);
       }
-      // printf("number of connected components: %d\n", (int)s1.size());
+      printf("number of connected components: %d\n", (int)s1.size());
 
-      found = !found;
+      if (const int cc = static_cast<int>(s1.size()); cc == 2) {
+        break;
+      }
+      printf("edgelist_cut length: %llu\n", edgelist.size());
+      break;
     }
 
     std::set<int> s1;
@@ -274,12 +284,6 @@ int main(int argc, char* argv[])
     if (s1.size() != (unsigned)count) {fprintf(stderr, "ERROR: component IDs are not unique\n\n");  exit(-1);}
 
     printf("all good\n\n");
-
-    loopcount++;
-
-    if (loopcount >= 1000 ) {
-      break;
-    }
 
   } while (std::next_permutation(edgelist.begin(), edgelist.end()));
 
