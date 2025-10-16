@@ -95,8 +95,8 @@ void compute(const int nodes, const int* const __restrict__ nidx, const int* con
 {
   #pragma omp parallel for schedule(guided) default(none) shared(nodes, nidx, nlist, nstat)
   for (int v = 0; v < nodes; v++) {
-    // const int vstat = nstat[v];
-    // if (v  != vstat) {
+    const int vstat = nstat[v];
+    if (v  != vstat) {
       const int beg = nidx[v];
       const int end = nidx[v + 1];
       int vstat = representative(v, nstat);
@@ -129,7 +129,7 @@ void compute(const int nodes, const int* const __restrict__ nidx, const int* con
 
         }
       }
-    // }
+    }
   }
 }
 
