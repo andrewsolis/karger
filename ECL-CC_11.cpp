@@ -229,6 +229,13 @@ void runchecks(const ECLgraph & g, int * nodestatus, const std::vector<std::pair
   printf("all good\n\n");
 }
 
+void display_edges(const std::vector< std::pair<int, int> >& edgelist) {
+  for (const auto &[fst, snd] : edgelist) {
+    printf("(%d %d) ", fst, snd);
+  }
+  printf("\n");
+}
+
 int main(int argc, char* argv[])
 {
   printf("ECL-CC v1.1 OpenMP (%s)\n", __FILE__);
@@ -279,10 +286,9 @@ int main(int argc, char* argv[])
 
     bool found = false;
 
-    while( !found ) {
+    while( true ) {
 
        // gettimeofday(&start, NULL);
-
 
        s1 = checkcc(g, nodestatus, edgelist_cut);
 
@@ -293,11 +299,17 @@ int main(int argc, char* argv[])
        // printf("throughput: %.3f Mnodes/s\n", g.nodes * 0.000001 / runtime);
        // printf("throughput: %.3f Medges/s\n", g.edges * 0.000001 / runtime);
 
-      if (const int cc = static_cast<int>(s1.size()); cc == 2) {
+      const int cc = static_cast<int>(s1.size());
+      if (cc == 2) {
+        printf("found 2 cc!");
         break;
       }
-      printf("edgelist_cut length: %llu\n", edgelist.size());
-      break;
+      if (cc < 2) {
+
+        int newend = edgelist_cut.size() + ( edgelist.size() - edgelist_cut.size() ) / 2;
+
+        edgelist_cut.assign(edgelist.begin(), edgelist.begin() + newend);
+      }
     }
 
     runchecks(g, nodestatus, edgelist_cut, s1);
