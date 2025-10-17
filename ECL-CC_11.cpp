@@ -259,11 +259,11 @@ int main(int argc, char* argv[])
   if (edgelist.empty()) {fprintf(stderr, "ERROR: no edges found\n\n");  exit(-1);}
 
   // do initial check to see how many connected components exist in the graph
-  std::set s1  = checkcc(g, nodestatus, edgelist);
+  std::set s1  = checkcc(g, nodestatus, std::vector< std::pair<int,int> >());
 
   if ((int)s1.size() >=2){fprintf(stderr, "ERROR: found 2 or more connected components in initial graph\n\n");  exit(-1);}
 
-  runchecks(g, nodestatus, edgelist, s1);
+  runchecks(g, nodestatus, std::vector< std::pair<int,int> >(), s1);
 
   do {
 
