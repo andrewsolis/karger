@@ -266,17 +266,23 @@ int main(int argc, char* argv[])
   runchecks(g, nodestatus, std::vector< std::pair<int,int> >(), s1);
 
   do {
-
+    std::vector< std::pair<int,int> > edgelist_cut;
     // only use half of vector at the beginning
-    std::vector< std::pair<int,int> > edgelist_cut(edgelist.begin(), edgelist.begin() + edgelist.size() / 2);
+    if (edgelist.size() > 1) {
+      edgelist_cut.assign(edgelist.begin(), edgelist.begin() + edgelist.size() / 2);
+    }
+    else {
+      edgelist_cut = edgelist;
+    }
 
-  //   struct timeval start, end;
+    //   struct timeval start, end;
 
     bool found = false;
 
     while( !found ) {
 
        // gettimeofday(&start, NULL);
+
 
        s1 = checkcc(g, nodestatus, edgelist_cut);
 
@@ -294,7 +300,7 @@ int main(int argc, char* argv[])
       break;
     }
 
-    runchecks(g, nodestatus, edgelist, s1);
+    runchecks(g, nodestatus, edgelist_cut, s1);
 
   } while (std::next_permutation(edgelist.begin(), edgelist.end()));
 
