@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
 
       const int cc = static_cast<int>(s1.size());
       if (cc == 2) {
-        printf("found 2 cc!");
+        printf("found 2 cc!\n");
         break;
       }
       if (cc < 2) {
@@ -309,6 +309,10 @@ int main(int argc, char* argv[])
         int newend = edgelist_cut.size() + ( edgelist.size() - edgelist_cut.size() ) / 2;
 
         edgelist_cut.assign(edgelist.begin(), edgelist.begin() + newend);
+      }
+      else {
+        printf("cc greater than 2!\n");
+        break;
       }
     }
 
