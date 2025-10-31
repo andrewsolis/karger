@@ -4,5 +4,7 @@ project(Karger)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(Karger ECLgraph.h
-        ECL-CC_11.cpp)
+        ECL-CC_11.cpp
+        graphGen/ECLgraph.h)
 add_executable(Basic basic.cpp ECLgraph.h)
+add_executable(graphGen graphGen/all_possible_graphs.cpp)
