@@ -275,17 +275,24 @@ int main(int argc, char* argv[])
   do {
     std::vector< std::pair<int,int> > edgelist_cut;
     // only use half of vector at the beginning
+
+    int cut_size = edgelist.size() / 2;
+
     if (edgelist.size() > 1) {
-      edgelist_cut.assign(edgelist.begin(), edgelist.begin() + edgelist.size() / 2);
+      printf("edgelist > 1\n");
+      edgelist_cut.assign(edgelist.begin(), edgelist.begin() + cut_size);
     }
     else {
+      printf("edgelist_cut == edgelist\n");
       edgelist_cut = edgelist;
     }
 
+
     //   struct timeval start, end;
+    printf("edgelist length: %lu\n", edgelist.size());
+    printf("edgelist_cut length: %lu\n", edgelist_cut.size() );
 
-    bool found = false;
-
+    int j = 0;
     while( true ) {
 
        // gettimeofday(&start, NULL);
@@ -304,16 +311,22 @@ int main(int argc, char* argv[])
         printf("found 2 cc!\n");
         break;
       }
+      cut_size = cut_size / 2;
+      int newend;
       if (cc < 2) {
-
-        int newend = edgelist_cut.size() + ( edgelist.size() - edgelist_cut.size() ) / 2;
-
-        edgelist_cut.assign(edgelist.begin(), edgelist.begin() + newend);
+        printf("cc < 2\n");
+        newend = edgelist_cut.size() + std::max(cut_size, 1);
       }
       else {
-        printf("cc greater than 2!\n");
-        break;
+        printf("cc >= 2\n");
+        newend = edgelist_cut.size() - std::max(cut_size, 1);
       }
+      printf("newend : %d\n", newend);
+      edgelist_cut.assign(edgelist.begin(), edgelist.begin() + newend);
+
+      printf("edgelist_cut length: %lu\n", edgelist_cut.size() );
+      j++;
+      if (j >= 2){ break;}
     }
 
     runchecks(g, nodestatus, edgelist_cut, s1);
