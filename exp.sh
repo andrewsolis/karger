@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 current_directory=$(pwd)
-graphs_dir="$current_directory/graphGen/generatedGraphs"
+graphs_dir=./graphGen/generatedGraphs
 
 if [ ! -d "$graphs_dir" ]; then
   echo "Error: directory $graphs_dir not found"
@@ -14,6 +14,6 @@ echo "Timestamp for filename: $filename_timestamp"
 for file_path in "$graphs_dir"/*; do
   if [ -f "$file_path" ]; then
     echo "Processing file: $file_path"
-    cmake-build-debug/Karger "$file_path" >> "$filename_timestamp" 2>&1
+    ./cmake-build-debug/Karger "$file_path" >> "$filename_timestamp" 2>&1
   fi
 done

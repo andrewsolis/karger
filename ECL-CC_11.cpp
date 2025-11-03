@@ -258,8 +258,6 @@ int main(int argc, char* argv[])
   printf("minimum degree: %d edges\n", mindeg);
   printf("maximum degree: %d edges\n", maxdeg);
 
-
-
   // get initial list of edges
   std::vector< std::pair<int,int> > edgelist = edgelist_create(g.nodes, g.nindex, g.nlist);
 
@@ -279,18 +277,14 @@ int main(int argc, char* argv[])
     int cut_size = edgelist.size() / 2;
 
     if (edgelist.size() > 1) {
-      printf("edgelist > 1\n");
       edgelist_cut.assign(edgelist.begin(), edgelist.begin() + cut_size);
     }
     else {
-      printf("edgelist_cut == edgelist\n");
       edgelist_cut = edgelist;
     }
 
 
     //   struct timeval start, end;
-    printf("edgelist length: %lu\n", edgelist.size());
-    printf("edgelist_cut length: %lu\n", edgelist_cut.size() );
 
     int j = 0;
     while( true ) {
@@ -308,23 +302,18 @@ int main(int argc, char* argv[])
 
       const int cc = static_cast<int>(s1.size());
       if (cc == 2) {
-        printf("found 2 cc!\n");
         break;
       }
       cut_size = cut_size / 2;
       int newend;
       if (cc < 2) {
-        printf("cc < 2\n");
         newend = edgelist_cut.size() + std::max(cut_size, 1);
       }
       else {
-        printf("cc >= 2\n");
         newend = edgelist_cut.size() - std::max(cut_size, 1);
       }
-      printf("newend : %d\n", newend);
       edgelist_cut.assign(edgelist.begin(), edgelist.begin() + newend);
 
-      printf("edgelist_cut length: %lu\n", edgelist_cut.size() );
       j++;
       if (j >= 2){ break;}
     }
