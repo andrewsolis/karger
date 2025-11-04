@@ -302,6 +302,7 @@ int main(int argc, char* argv[])
 
       const int cc = static_cast<int>(s1.size());
       if (cc == 2) {
+        printf("found 2 cc!");
         break;
       }
       cut_size = cut_size / 2;
