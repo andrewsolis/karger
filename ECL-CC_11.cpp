@@ -203,7 +203,7 @@ void runchecks(const ECLgraph & g, int * nodestatus, const std::vector<std::pair
       if (!edgeverify(v, g.nlist[i], edgelist)){
 
 
-        if (nodestatus[g.nlist[i]] != nodestatus[v]) {fprintf(stderr, "ERROR: found adjacent nodes in different components\n\n");  exit(-1);}
+        if (nodestatus[g.nlist[i]] != nodestatus[v]) {fprintf(stderr, "ERROR: found adjacent nodes in different components\n\n"); exit(-1);}
       }
 
     }
@@ -245,7 +245,6 @@ int main(int argc, char* argv[])
 
   ECLgraph g = readECLgraph(argv[1]);
   int* const nodestatus = new int [g.nodes];
-
   printf("input graph: %d nodes and %d edges (%s)\n", g.nodes, g.edges, argv[1]);
   printf("average degree: %.2f edges per node\n", 1.0 * g.edges / g.nodes);
   int mindeg = g.nodes;
@@ -286,7 +285,6 @@ int main(int argc, char* argv[])
 
     //   struct timeval start, end;
 
-    int j = 0;
     while( true ) {
 
        // gettimeofday(&start, NULL);
@@ -302,7 +300,6 @@ int main(int argc, char* argv[])
 
       const int cc = static_cast<int>(s1.size());
       if (cc == 2) {
-        printf("found 2 cc!");
         break;
       }
       cut_size = cut_size / 2;
@@ -315,8 +312,6 @@ int main(int argc, char* argv[])
       }
       edgelist_cut.assign(edgelist.begin(), edgelist.begin() + newend);
 
-      j++;
-      if (j >= 2){ break;}
     }
 
     runchecks(g, nodestatus, edgelist_cut, s1);
