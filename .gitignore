@@ -5,3 +5,8 @@ cs5351/
 
 # graphs directory
 ECLGraphs/
+
+Karger
+*.out
+*.exe
+graphGen/generatedGraphs/

@@ -8,3 +8,4 @@ add_executable(Karger ECLgraph.h
         graphGen/ECLgraph.h)
 add_executable(Basic basic.cpp ECLgraph.h)
 add_executable(graphGen graphGen/all_possible_graphs.cpp)
+add_executable(Karger-orig ECL-original.cpp ECLgraph.h)
