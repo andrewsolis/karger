@@ -1,0 +1,3 @@
+[submodule "Indigo3Suite"]
+	path = Indigo3Suite
+	url = https://github.com/burtscher/Indigo3Suite
