@@ -269,7 +269,7 @@ int main(int argc, char* argv[])
 
   runchecks(g, nodestatus, std::vector< std::pair<int,int> >(), s1);
 
-  do {
+  // do {
     std::vector< std::pair<int,int> > edgelist_cut;
     // only use half of vector at the beginning
 
@@ -284,7 +284,7 @@ int main(int argc, char* argv[])
 
 
     //   struct timeval start, end;
-
+    printf("running program...");
     while( true ) {
 
        // gettimeofday(&start, NULL);
@@ -316,7 +316,9 @@ int main(int argc, char* argv[])
 
     runchecks(g, nodestatus, edgelist_cut, s1);
 
-  } while (std::next_permutation(edgelist.begin(), edgelist.end()));
+    printf("program complete");
+
+  // } while (std::next_permutation(edgelist.begin(), edgelist.end()));
 
   delete [] nodestatus;
   return 0;
