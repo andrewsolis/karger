@@ -287,16 +287,7 @@ int main(int argc, char* argv[])
     printf("running program...");
     while( true ) {
 
-       // gettimeofday(&start, NULL);
-
        s1 = checkcc(g, nodestatus, edgelist_cut);
-
-       // gettimeofday(&end, NULL);
-       // double runtime = end.tv_sec + end.tv_usec / 1000000.0 - start.tv_sec - start.tv_usec / 1000000.0;
-
-       // printf("compute time: %.4f s\n", runtime);
-       // printf("throughput: %.3f Mnodes/s\n", g.nodes * 0.000001 / runtime);
-       // printf("throughput: %.3f Medges/s\n", g.edges * 0.000001 / runtime);
 
       const int cc = static_cast<int>(s1.size());
       if (cc == 2) {
