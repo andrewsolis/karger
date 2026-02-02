@@ -307,8 +307,38 @@ int main(int argc, char* argv[])
 
     runchecks(g, nodestatus, edgelist_cut, s1);
 
-    printf("program complete");
+    printf("program complete\n");
 
+
+    ECLgraph g_cut{};
+
+    g_cut.nodes = g.nodes;
+
+    std::vector<int> nindex_cut;
+    std::vector<int> nlist_cut;
+
+    for (int v = 0; v <= g.nodes; v++) {
+
+      // length as starting index
+      nindex_cut.push_back(nlist_cut.size());
+
+      for (int i = g.nindex[v]; i < g.nindex[v + 1]; i++) {
+
+        if (!edgeverify(v, g.nlist[i], edgelist_cut)){
+          nlist_cut.push_back(g.nlist[i]);
+        }
+
+      }
+
+    }
+
+    for (int v = 0; v < g_cut.nodes; v++) {
+      printf("%d neighbors: ", v);
+      for (int i = nindex_cut[v]; i < nindex_cut[v + 1]; i++) {
+        printf("%d ", nlist_cut[i]);
+      }
+      printf("\n");
+    }
   // } while (std::next_permutation(edgelist.begin(), edgelist.end()));
 
   delete [] nodestatus;
