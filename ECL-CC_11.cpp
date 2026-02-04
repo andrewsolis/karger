@@ -279,7 +279,9 @@ void create_permutation(std::vector< std::pair<int,int> > &edgelist) {
   // const unsigned seed = 1337;
 
   // set random number engine
-  std::mt19937 engine(seed);
+  // std::mt19937 engine(seed);
+  std::mt19937 engine(1438228004);
+  // printf("seed: %d", seed);
 
   // set min max of random range
   std::uniform_int_distribution<int> dist(0, edgelist.size() - 1);
@@ -330,11 +332,12 @@ int main(int argc, char* argv[])
 
     create_permutation(edgelist_cut);
 
-    display_edges(edgelist_cut);
+    int cut_size = static_cast<int>( edgelist_cut.size() );
 
     //   struct timeval start, end;
     printf("running program...\n");
     while( true ) {
+
 
       s1 = checkcc(g, nodestatus, edgelist_cut);
 
@@ -342,7 +345,7 @@ int main(int argc, char* argv[])
       if (cc == 2) {
         break;
       }
-      int cut_size = static_cast<int>( edgelist_cut.size() ) / 2;
+      cut_size = cut_size / 2;
       int newend;
       if (cc < 2) {
         newend = static_cast<int>( edgelist_cut.size() ) + std::max(cut_size, 1);
@@ -353,6 +356,8 @@ int main(int argc, char* argv[])
       edgelist_cut.assign(edgelist_cut.begin(), edgelist_cut.begin() + newend);
 
     }
+
+    // display_edges(edgelist_cut);
 
     runchecks(g, nodestatus, edgelist_cut, s1);
 
