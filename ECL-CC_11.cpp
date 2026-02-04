@@ -45,6 +45,8 @@ June 2018.
 #include <stdio.h>
 #include <set>
 #include <vector>
+#include <random>
+#include <chrono>
 #include <sys/time.h>
 #include "ECLgraph.h"
 
@@ -270,6 +272,24 @@ void print_graph(const ECLgraph & g, const std::vector< std::pair<int, int> >& e
   // }
 }
 
+void create_permutation(std::vector< std::pair<int,int> > &edgelist) {
+
+  // generate random seed each time using system clock
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  // const unsigned seed = 1337;
+
+  // set random number engine
+  std::mt19937 engine(seed);
+
+  // set min max of random range
+  std::uniform_int_distribution<int> dist(0, edgelist.size() - 1);
+
+  for (std::size_t i = 0; i < edgelist.size(); i++)
+  {
+    std::swap(edgelist[i], edgelist[dist(engine)]);
+  }
+}
+
 int main(int argc, char* argv[])
 {
   printf("ECL-CC v1.1 OpenMP (%s)\n", __FILE__);
@@ -303,42 +323,43 @@ int main(int argc, char* argv[])
 
   runchecks(g, nodestatus, std::vector< std::pair<int,int> >(), s1);
 
-  int count = 0;
+  for (int i = 0; i < 2; i++)
+  {
 
-  do {
-    if (count == 1){ break; }
-    std::vector< std::pair<int,int> > edgelist_cut;
+    std::vector< std::pair<int,int> > edgelist_cut = edgelist;
     // only use half of vector at the beginning
 
-    int cut_size = edgelist.size() / 2;
+    // int cut_size = edgelist.size() / 2;
+    //
+    // if (edgelist.size() > 1) {
+    //   edgelist_cut.assign(edgelist.begin(), edgelist.begin() + cut_size);
+    // }
+    // else {
+    // }
 
-    if (edgelist.size() > 1) {
-      edgelist_cut.assign(edgelist.begin(), edgelist.begin() + cut_size);
-    }
-    else {
-      edgelist_cut = edgelist;
-    }
+    create_permutation(edgelist_cut);
 
+    display_edges(edgelist_cut);
 
     //   struct timeval start, end;
-    printf("running program...");
+    printf("running program...\n");
     while( true ) {
 
-       s1 = checkcc(g, nodestatus, edgelist_cut);
+      s1 = checkcc(g, nodestatus, edgelist_cut);
 
       const int cc = static_cast<int>(s1.size());
       if (cc == 2) {
         break;
       }
-      cut_size = cut_size / 2;
+      int cut_size = static_cast<int>( edgelist_cut.size() ) / 2;
       int newend;
       if (cc < 2) {
-        newend = edgelist_cut.size() + std::max(cut_size, 1);
+        newend = static_cast<int>( edgelist_cut.size() ) + std::max(cut_size, 1);
       }
       else {
-        newend = edgelist_cut.size() - std::max(cut_size, 1);
+        newend = static_cast<int>( edgelist_cut.size() ) - std::max(cut_size, 1);
       }
-      edgelist_cut.assign(edgelist.begin(), edgelist.begin() + newend);
+      edgelist_cut.assign(edgelist_cut.begin(), edgelist_cut.begin() + newend);
 
     }
 
@@ -346,10 +367,10 @@ int main(int argc, char* argv[])
 
     printf("program complete\n");
 
-    print_graph(g, edgelist_cut);
+    display_edges(edgelist_cut);
+  }
 
-    count++;
-  } while (std::next_permutation(edgelist.begin(), edgelist.end()));
+
 
   delete [] nodestatus;
   return 0;
