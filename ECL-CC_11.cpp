@@ -327,15 +327,6 @@ int main(int argc, char* argv[])
   {
 
     std::vector< std::pair<int,int> > edgelist_cut = edgelist;
-    // only use half of vector at the beginning
-
-    // int cut_size = edgelist.size() / 2;
-    //
-    // if (edgelist.size() > 1) {
-    //   edgelist_cut.assign(edgelist.begin(), edgelist.begin() + cut_size);
-    // }
-    // else {
-    // }
 
     create_permutation(edgelist_cut);
 
@@ -367,7 +358,6 @@ int main(int argc, char* argv[])
 
     printf("program complete\n");
 
-    display_edges(edgelist_cut);
   }
 
 
