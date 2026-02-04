@@ -275,16 +275,13 @@ void print_graph(const ECLgraph & g, const std::vector< std::pair<int, int> >& e
 void create_permutation(std::vector< std::pair<int,int> > &edgelist) {
 
   // generate random seed each time using system clock
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  // const unsigned seed = 1337;
+  const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 
   // set random number engine
-  // std::mt19937 engine(seed);
-  std::mt19937 engine(1438228004);
-  // printf("seed: %d", seed);
+  std::mt19937 engine(seed);
 
   // set min max of random range
-  std::uniform_int_distribution<int> dist(0, edgelist.size() - 1);
+  std::uniform_int_distribution<int> dist(0, static_cast<int>(edgelist.size()) - 1);
 
   for (std::size_t i = 0; i < edgelist.size(); i++)
   {
