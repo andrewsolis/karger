@@ -236,6 +236,40 @@ void display_edges(const std::vector< std::pair<int, int> >& edgelist) {
   printf("\n");
 }
 
+void print_graph(const ECLgraph & g, const std::vector< std::pair<int, int> >& edgelist_cut) {
+  printf("%d nodes and %d edges\n", g.nodes, g.edges);
+
+  ECLgraph g_cut{};
+
+  g_cut.nodes = g.nodes;
+
+  std::vector<int> nindex_cut;
+  std::vector<int> nlist_cut;
+
+  for (int v = 0; v <= g.nodes; v++) {
+
+    // length as starting index
+    nindex_cut.push_back(nlist_cut.size());
+
+    for (int i = g.nindex[v]; i < g.nindex[v + 1]; i++) {
+
+      if (!edgeverify(v, g.nlist[i], edgelist_cut)){
+        nlist_cut.push_back(g.nlist[i]);
+      }
+
+    }
+
+  }
+
+  // for (int v = 0; v < g_cut.nodes; v++) {
+  //   printf("%d neighbors: ", v);
+  //   for (int i = nindex_cut[v]; i < nindex_cut[v + 1]; i++) {
+  //     printf("%d ", nlist_cut[i]);
+  //   }
+  //   printf("\n");
+  // }
+}
+
 int main(int argc, char* argv[])
 {
   printf("ECL-CC v1.1 OpenMP (%s)\n", __FILE__);
@@ -269,7 +303,10 @@ int main(int argc, char* argv[])
 
   runchecks(g, nodestatus, std::vector< std::pair<int,int> >(), s1);
 
-  // do {
+  int count = 0;
+
+  do {
+    if (count == 1){ break; }
     std::vector< std::pair<int,int> > edgelist_cut;
     // only use half of vector at the beginning
 
@@ -309,37 +346,10 @@ int main(int argc, char* argv[])
 
     printf("program complete\n");
 
+    print_graph(g, edgelist_cut);
 
-    ECLgraph g_cut{};
-
-    g_cut.nodes = g.nodes;
-
-    std::vector<int> nindex_cut;
-    std::vector<int> nlist_cut;
-
-    for (int v = 0; v <= g.nodes; v++) {
-
-      // length as starting index
-      nindex_cut.push_back(nlist_cut.size());
-
-      for (int i = g.nindex[v]; i < g.nindex[v + 1]; i++) {
-
-        if (!edgeverify(v, g.nlist[i], edgelist_cut)){
-          nlist_cut.push_back(g.nlist[i]);
-        }
-
-      }
-
-    }
-
-    for (int v = 0; v < g_cut.nodes; v++) {
-      printf("%d neighbors: ", v);
-      for (int i = nindex_cut[v]; i < nindex_cut[v + 1]; i++) {
-        printf("%d ", nlist_cut[i]);
-      }
-      printf("\n");
-    }
-  // } while (std::next_permutation(edgelist.begin(), edgelist.end()));
+    count++;
+  } while (std::next_permutation(edgelist.begin(), edgelist.end()));
 
   delete [] nodestatus;
   return 0;
