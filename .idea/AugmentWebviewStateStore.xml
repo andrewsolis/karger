@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AugmentWebviewStateStore">
+    <option name="stateMap">
+      <map>
+        <entry key="CHAT_STATE" value="[[&quot;currentConversationId&quot;,&quot;pins&quot;,&quot;agentExecutionMode&quot;,&quot;isPanelCollapsed&quot;,&quot;displayedAnnouncements&quot;,&quot;conversations&quot;,&quot;onboarding&quot;,&quot;queueStatus&quot;,&quot;a|0|1|2|3|4|5|6|7&quot;,&quot;53384bfc-34ce-4f47-8584-5150da45dd10&quot;,&quot;o|&quot;,&quot;manual&quot;,&quot;b|F&quot;,&quot;a|&quot;,&quot;__NEW_AGENT__&quot;,&quot;a|9|E&quot;,&quot;id&quot;,&quot;name&quot;,&quot;createdAtIso&quot;,&quot;lastInteractedAtIso&quot;,&quot;selectedModelId&quot;,&quot;requestIds&quot;,&quot;isPinned&quot;,&quot;isShareable&quot;,&quot;extraData&quot;,&quot;rootTaskUuid&quot;,&quot;toolUseStates&quot;,&quot;chatHistory&quot;,&quot;feedbackStates&quot;,&quot;draftExchange&quot;,&quot;a|G|H|I|J|K|L|M|N|O|P|Q|R|S|T&quot;,&quot;Karger project summary request&quot;,&quot;2026-04-20T20:48:21.421Z&quot;,&quot;2026-04-20T20:49:33.985Z&quot;,&quot;claude-opus-4-7&quot;,&quot;isAgentConversation&quot;,&quot;a|Z&quot;,&quot;b|T&quot;,&quot;o|a|b&quot;,&quot;b1ad61c2-2899-4fe3-abf7-ba221a1f0bc6&quot;,&quot;request_message&quot;,&quot;rich_text_json_repr&quot;,&quot;status&quot;,&quot;a|e|f|g&quot;,&quot;&quot;,&quot;type&quot;,&quot;content&quot;,&quot;a|j|k&quot;,&quot;doc&quot;,&quot;a|j&quot;,&quot;paragraph&quot;,&quot;o|n|o&quot;,&quot;a|p&quot;,&quot;o|l|m|q&quot;,&quot;draft&quot;,&quot;o|h|i|r|s&quot;,&quot;o|U|9|V|W|X|Y|D|C|C|c|d|A|D|A|t&quot;,&quot;a|G|I|J|K|L|M|N|O|P|Q|R|S|T&quot;,&quot;2026-04-20T20:49:30.191Z&quot;,&quot;baselineTimestamp&quot;,&quot;a|Z|x&quot;,&quot;n|0&quot;,&quot;o|y|b|z&quot;,&quot;d0c8e6a6-d694-4ef8-bdec-64bb6ad4bec4&quot;,&quot;o|v|E|w|w|Y|D|C|C|10|11|A|D|A|t&quot;,&quot;o|F|u|12&quot;,&quot;shown&quot;,&quot;workspaceQuestions&quot;,&quot;a|14|15&quot;,&quot;o|16|C|D&quot;,&quot;o|8|9|A|B|C|D|13|17|A&quot;],&quot;18&quot;]" />
+      </map>
+    </option>
+  </component>
+</project>

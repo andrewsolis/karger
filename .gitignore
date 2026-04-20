@@ -1,5 +1,7 @@
 # graphs directory
 ECLGraphs/
+.idea/
+Indigo3Suite/
 
 Karger
 *.out
