@@ -274,11 +274,10 @@ void print_graph(const ECLgraph & g, const std::vector< std::pair<int, int> >& e
 
 void create_permutation(std::vector< std::pair<int,int> > &edgelist) {
 
-  // generate random seed each time using system clock
-  const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-
+  // generate random seed each time
+std::random_device rd;
   // set random number engine
-  std::mt19937 engine(seed);
+  std::mt19937 engine(rd());
 
   // set min max of random range
   std::uniform_int_distribution<int> dist(0, static_cast<int>(edgelist.size()) - 1);
@@ -294,9 +293,11 @@ int main(int argc, char* argv[])
   printf("ECL-CC v1.1 OpenMP (%s)\n", __FILE__);
   printf("Copyright 2017-2020 Texas State University\n");
 
-  if (argc != 2) {fprintf(stderr, "USAGE: %s input_file_name\n\n", argv[0]);  exit(-1);}
+  if (argc != 3) {fprintf(stderr, "USAGE: %s input_file_name number_permutations\n\n", argv[0]);  exit(-1);}
 
   ECLgraph g = readECLgraph(argv[1]);
+  const int num_permutations = std::stoi(argv[2]);
+
   int* const nodestatus = new int [g.nodes];
   printf("input graph: %d nodes and %d edges (%s)\n", g.nodes, g.edges, argv[1]);
   printf("average degree: %.2f edges per node\n", 1.0 * g.edges / g.nodes);
@@ -322,7 +323,7 @@ int main(int argc, char* argv[])
 
   runchecks(g, nodestatus, std::vector< std::pair<int,int> >(), s1);
 
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < num_permutations; i++)
   {
 
     std::vector< std::pair<int,int> > edgelist_cut = edgelist;
@@ -358,7 +359,7 @@ int main(int argc, char* argv[])
 
     runchecks(g, nodestatus, edgelist_cut, s1);
 
-    printf("program complete\n");
+    printf("program complete\n------------\n");
 
   }
 
