@@ -1,3 +1,6 @@
 [submodule "Indigo3Suite"]
 	path = Indigo3Suite
 	url = https://github.com/burtscher/Indigo3Suite
+[submodule "boost"]
+	path = boost
+	url = https://github.com/boostorg/boost
