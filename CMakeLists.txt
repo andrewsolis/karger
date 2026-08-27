@@ -7,7 +7,10 @@ add_executable(Karger ECLgraph.h ECL-CC_11.cpp)
 add_executable(Basic basic.cpp ECLgraph.h)
 add_executable(Karger-orig ECL-original.cpp ECLgraph.h)
 
-find_package(Boost REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(Karger ${Boost_LIBRARIES})
-add_executable(GraphTest GraphTest.cpp GraphTest.h)
+add_subdirectory(boost EXCLUDE_FROM_ALL)
+
+add_executable(StoerWagnerExample boost/libs/graph/example/stoer_wagner.cpp)
+target_link_libraries(StoerWagnerExample PRIVATE Boost::graph)
+
+add_executable(StoerWagnerBoostTest boost/libs/graph/test/stoer_wagner_test.cpp)
+target_link_libraries(StoerWagnerBoostTest PRIVATE Boost::graph)

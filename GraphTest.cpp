@@ -313,6 +313,53 @@ void test_prgen_50_70_2()
     BOOST_TEST_EQ(w, 21755);
 }
 
+// Test from stoer_wagner.cpp
+void test6() {
+    edge_t edges[] = { { 3, 4 }, { 3, 6 }, { 3, 5 }, { 0, 4 }, { 0, 1 },
+            { 0, 6 }, { 0, 7 }, { 0, 5 }, { 0, 2 }, { 4, 1 }, { 1, 6 }, { 1, 5 },
+            { 6, 7 }, { 7, 5 }, { 5, 2 }, { 3, 4 } };
+
+    // for each of the 16 edges, define the associated edge weight. ws[i] is the
+    // weight for the edge that is described by edges[i].
+    weight_type ws[] = { 0, 3, 1, 3, 1, 2, 6, 1, 8, 1, 1, 80, 2, 1, 1, 4 };
+
+    // construct the graph object. 8 is the number of vertices, which are
+    // numbered from 0 through 7, and 16 is the number of edges.
+    undirected_graph g(edges, edges + 16, ws, 8, 16);
+
+    // define a property map, `parities`, that will store a boolean value for
+    // each vertex. Vertices that have the same parity after
+    // `stoer_wagner_min_cut` runs are on the same side of the min-cut.
+    BOOST_AUTO(parities,
+        boost::make_one_bit_color_map(
+            num_vertices(g), get(boost::vertex_index, g)));
+
+    // run the Stoer-Wagner algorithm to obtain the min-cut weight. `parities`
+    // is also filled in.
+    int w = boost::stoer_wagner_min_cut(
+        g, get(boost::edge_weight, g), boost::parity_map(parities));
+
+    std::cout << "The min-cut weight of G is " << w << ".\n" << std::endl;
+    assert(w == 7);
+
+    std::cout << "One set of vertices consists of:" << std::endl;
+    size_t i;
+    for (i = 0; i < num_vertices(g); ++i)
+    {
+        if (get(parities, i))
+            std::cout << i << std::endl;
+    }
+    std::cout << std::endl;
+
+    std::cout << "The other set of vertices consists of:" << std::endl;
+    for (i = 0; i < num_vertices(g); ++i)
+    {
+        if (!get(parities, i))
+            std::cout << i << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
     if (BOOST_TEST(argc == 2))
@@ -324,8 +371,9 @@ int main(int argc, char* argv[])
         test3();
         test4();
         test5();
-        // test_prgen_20_70_2();
-        // test_prgen_50_70_2();
+        test6();
+        test_prgen_20_70_2();
+        test_prgen_50_70_2();
     }
     return boost::report_errors();
 }
