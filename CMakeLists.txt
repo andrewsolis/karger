@@ -9,6 +9,9 @@ add_executable(Karger-orig ECL-original.cpp ECLgraph.h)
 
 add_subdirectory(boost EXCLUDE_FROM_ALL)
 
+add_executable(GraphTest GraphTest.h GraphTest.cpp)
+target_link_libraries(GraphTest PRIVATE Boost::graph)
+
 add_executable(StoerWagnerExample boost/libs/graph/example/stoer_wagner.cpp)
 target_link_libraries(StoerWagnerExample PRIVATE Boost::graph)
 
