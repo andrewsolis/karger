@@ -75,7 +75,21 @@ static void test_1()
 
     std::cout << "The min-cut weight of G is " << w << ".\n" << std::endl;
 
+    size_t i;
+    for (i = 0; i < num_vertices(g); ++i)
+    {
+        if (get(parities, i))
+            std::cout << i << std::endl;
+    }
+    std::cout << std::endl;
 
+    std::cout << "The other set of vertices consists of:" << std::endl;
+    for (i = 0; i < num_vertices(g); ++i)
+    {
+        if (!get(parities, i))
+            std::cout << i << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 int main(int argc, char* argv[])
