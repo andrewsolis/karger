@@ -7,7 +7,7 @@
 
 
 
-class GraphTest {
+class EGRBoost {
 
 };
 

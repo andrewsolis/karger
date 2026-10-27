@@ -10,9 +10,9 @@ add_executable(Karger-orig ECL-original.cpp ECLgraph.h)
 set(BOOST_INCLUDE_LIBRARIES graph)
 add_subdirectory(boost EXCLUDE_FROM_ALL)
 
-add_executable(GraphTest GraphTest.h GraphTest.cpp)
-target_include_directories(GraphTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/boost/libs/graph/test)
-target_link_libraries(GraphTest PRIVATE Boost::graph)
+add_executable(EGRBoost EGRBoost.h karger_helper.h karger_helper.cpp EGRBoost.cpp)
+target_include_directories(EGRBoost PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/boost/libs/graph/test)
+target_link_libraries(EGRBoost PRIVATE Boost::graph)
 
 add_executable(StoerWagnerExample boost/libs/graph/example/stoer_wagner.cpp)
 target_link_libraries(StoerWagnerExample PRIVATE Boost::graph)
