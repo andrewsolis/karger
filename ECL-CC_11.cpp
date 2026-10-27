@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
     // printf("edgelist cut size: %lu\n", edgelist_cut.size());
 
     if (best_edgelist.size() > edgelist_cut.size()) {
-      // printf("new top edgelist found of length %lu \n", edgelist_cut.size());
+      printf("new top edgelist found of length %lu \n", edgelist_cut.size());
       best_edgelist = edgelist_cut;
     }
 
