@@ -7,6 +7,7 @@
 #endif
 
 #include <print>
+#include <ranges>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/core/lightweight_test.hpp>
@@ -29,65 +30,61 @@ struct edge_t
     unsigned long second;
 };
 
-
-//            Copyright Daniel Trebbien 2010.
-// Distributed under the Boost Software License, Version 1.0.
-//   (See accompanying file LICENSE_1_0.txt or the copy at
-//         http://www.boost.org/LICENSE_1_0.txt)
-/*
- * Basic test of unweighted graph with a constant weight map
- * (copied from stoer_wagner_test.cpp test4() )
- */
-void basicTest() {
-    using vd = boost::graph_traits< undirected_unweighted_graph >::vertex_descriptor;
-    using ed = boost::graph_traits< undirected_unweighted_graph >::edge_descriptor;
-
-    edge_t edges[] = { { 0, 1 }, { 1, 2 }, { 2, 3 }, { 0, 4 }, { 1, 4 },
-        { 1, 5 }, { 2, 6 }, { 3, 6 }, { 3, 7 }, { 4, 5 }, { 5, 6 }, { 6, 7 },
-        { 0, 4 }, { 6, 7 } };
-    undirected_unweighted_graph g(edges, edges + 14, 8);
-
-    std::map< vd, bool > parity;
-    boost::associative_property_map< std::map< vd, bool > > parities(parity);
-    const int w = boost::graph::stoer_wagner_min_cut(g,
-        boost::make_constant_property< ed >(weight_type(1)), parities);
-    BOOST_TEST_EQ(w, 2);
-    const bool parity0 = get(parities, 0);
-    BOOST_TEST_EQ(parity0, get(parities, 1));
-    BOOST_TEST_EQ(parity0, get(parities, 4));
-    BOOST_TEST_EQ(parity0, get(parities, 5));
-    const bool parity2 = get(parities, 2);
-    BOOST_TEST_NE(parity0, parity2);
-    BOOST_TEST_EQ(parity2, get(parities, 3));
-    BOOST_TEST_EQ(parity2, get(parities, 6));
-    BOOST_TEST_EQ(parity2, get(parities, 7));
-
-
-    std::println("The min-cut weight of G is {}", w);
-
-
-}
-
 int main(int argc, char* argv[])
 {
-    /*
-     * 
-     */
+
     if (BOOST_TEST(argc == 2))
     {
+        // read in egr path
         egr_path = argv[1];
 
         std::println("EGR file path: {}", egr_path);
 
-        basicTest();
+        // read in file as ecl egr graph
+        ECLgraph ecl_g = readECLgraph(argv[1]);
 
-        ECLgraph g = readECLgraph(argv[1]);
+        // print out nodes and edges.
+        // NOTE: edges are duplicated so edge count is doubled
+        std::println("input graph: {} nodes and {} edges(duplicates x 2)", ecl_g.nodes, ecl_g.edges);
 
-        std::println("input graph: {} nodes and {} edges(duplicates x 2)", g.nodes, g.edges);
+        // call helper function to create edge list with duplicates removed
+        std::vector< std::pair<int,int> > edge_list = edgelist_create(ecl_g.nodes, ecl_g.nindex, ecl_g.nlist);
 
-        std::vector< std::pair<int,int> > edge_list = edgelist_create(g.nodes, g.nindex, g.nlist);
-
+        // print out final edge list count with duplicates removed
         std::println("input graph edge_list: {} edges", edge_list.size());
+
+        // setup taken from test4() of stoer_wagner_test.cpp
+        // -------------------------------------------------
+
+        // Initialize vertex and edge descriptors
+        using vd = boost::graph_traits< undirected_unweighted_graph >::vertex_descriptor;
+        using ed = boost::graph_traits< undirected_unweighted_graph >::edge_descriptor;
+
+        // create edges array for boost to use
+        edge_t edges[ edge_list.size() ];
+
+        // add edges from vector to edge list array
+        for (size_t i = 0; i < edge_list.size(); i++) {
+            edges[i] = edge_t(edge_list[i].first, edge_list[i].second);
+        }
+
+        // create undirected unweighted graph from edge list
+        undirected_unweighted_graph boost_g(edges, edges + edge_list.size(), ecl_g.nodes);
+
+        // create map for each vector that sets it's parity. Those that are
+        // true are in one group and those that are false are in another
+        std::map< vd, bool > parity;
+        boost::associative_property_map< std::map< vd, bool > > parities(parity);
+
+        // call stoer_wagner which returns weight of cut, and set
+        // weight of each edge to 1
+        const int w = boost::graph::stoer_wagner_min_cut(boost_g,
+            boost::make_constant_property< ed >(weight_type(1)), parities);
+
+        // Since each weight is 1 then the resulting weight equals the number
+        // of edges that were cut
+        std::println("The min-cut weight of the graph is {}", w);
+
     }
     return boost::report_errors();
 }
