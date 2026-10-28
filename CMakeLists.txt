@@ -17,7 +17,7 @@ add_executable(EGRBoost EGRBoost.h karger_helper.h karger_helper.cpp EGRBoost.cp
 target_include_directories(EGRBoost PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/boost/libs/graph/test)
 target_link_libraries(EGRBoost PRIVATE Boost::graph)
 
-add_executable(EGRigraph EGRigraph.h EGRigraph.cpp)
+add_executable(EGRigraph EGRigraph.h karger_helper.h karger_helper.cpp EGRigraph.cpp)
 target_link_libraries(EGRigraph PRIVATE igraph)
 
 
