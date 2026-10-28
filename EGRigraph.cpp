@@ -22,6 +22,7 @@ igraph library.
 
 #include <print>
 #include <vector>
+#include <chrono>
 
 #include <igraph.h>
 #include "karger_helper.h"
@@ -55,7 +56,13 @@ int main(int argc, char* argv[])
     // Declare graph, edges, and weight vector objects
     igraph_t g;
     igraph_vector_int_t edges;
-    igraph_vector_t weights;
+
+    // vectors to store partition and edges cut
+    igraph_vector_int_t partition1, partition2, cut;
+
+    // value to store number of edges cut
+    igraph_real_t value;
+
 
     // read in egr path
     egr_path = argv[1];
@@ -97,6 +104,31 @@ int main(int argc, char* argv[])
 
     // create graph
     igraph_create(&g, &edges, ecl_g.nodes, IGRAPH_UNDIRECTED);
+
+    // create vectors to store partition and edges cut
+    igraph_vector_int_init(&partition1, 0);
+    igraph_vector_int_init(&partition2, 0);
+    igraph_vector_int_init(&cut, 0);
+
+    // starting runtime timer for stoer wager function
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
+    // call mincut
+    igraph_mincut(&g, &value, &partition1, &partition2, &cut, nullptr);
+
+    // stopping clock
+    const std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+    auto time_span = duration_cast<std::chrono::duration<double>>(end - start);
+
+    std::println("runtime: {} seconds", time_span.count() );
+
+    std::println("mincut value: {}", value);
+
+    // free partition and cut vectors
+    igraph_vector_int_destroy(&cut);
+    igraph_vector_int_destroy(&partition2);
+    igraph_vector_int_destroy(&partition1);
 
     // free memory for edges vector and graph
     igraph_vector_int_destroy(&edges);
