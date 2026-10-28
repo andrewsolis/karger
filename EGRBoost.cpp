@@ -8,6 +8,7 @@
 
 #include <print>
 #include <ranges>
+#include <chrono>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/core/lightweight_test.hpp>
@@ -17,6 +18,12 @@
 #include "karger_helper.h"
 #include "ECLgraph.h"
 
+// Set compile time constant based on macro for debug mode
+#ifdef DEBUG
+constexpr bool debug_mode = true;
+#else
+constexpr bool debug_mode = false;
+#endif
 
 using mas_sw_oracle::weight_type;
 
@@ -47,6 +54,10 @@ int main(int argc, char* argv[])
         // NOTE: edges are duplicated so edge count is doubled
         std::println("input graph: {} nodes and {} edges(duplicates x 2)", ecl_g.nodes, ecl_g.edges);
 
+        if constexpr (debug_mode) {
+            std::println("creating edge list");
+        }
+
         // call helper function to create edge list with duplicates removed
         std::vector< std::pair<int,int> > edge_list = edgelist_create(ecl_g.nodes, ecl_g.nindex, ecl_g.nlist);
 
@@ -63,23 +74,49 @@ int main(int argc, char* argv[])
         // create edges array for boost to use
         edge_t edges[ edge_list.size() ];
 
+        if constexpr (debug_mode) {
+            std::println("copying edgelist to edges array");
+        }
+
         // add edges from vector to edge list array
         for (size_t i = 0; i < edge_list.size(); i++) {
             edges[i] = edge_t(edge_list[i].first, edge_list[i].second);
         }
 
+        if constexpr (debug_mode) {
+            std::println("creating undirected unweighted graph");
+        }
+
         // create undirected unweighted graph from edge list
-        undirected_unweighted_graph boost_g(edges, edges + edge_list.size(), ecl_g.nodes);
+        const undirected_unweighted_graph boost_g(edges, edges + edge_list.size(), ecl_g.nodes);
+
+        if constexpr (debug_mode) {
+            std::println("creating parity property map");
+        }
 
         // create map for each vector that sets it's parity. Those that are
         // true are in one group and those that are false are in another
         std::map< vd, bool > parity;
         boost::associative_property_map< std::map< vd, bool > > parities(parity);
 
+        if constexpr (debug_mode) {
+            std::println("Calling Stoer Wagner");
+        }
+
+        // starting runtime timer for stoer wager function
+        std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
         // call stoer_wagner which returns weight of cut, and set
         // weight of each edge to 1
         const int w = boost::graph::stoer_wagner_min_cut(boost_g,
             boost::make_constant_property< ed >(weight_type(1)), parities);
+
+        // stopping clock
+        const std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+        auto time_span = duration_cast<std::chrono::duration<double>>(end - start);
+
+        std::println("Stoer Wagner took {} seconds", time_span.count());
 
         // Since each weight is 1 then the resulting weight equals the number
         // of edges that were cut
