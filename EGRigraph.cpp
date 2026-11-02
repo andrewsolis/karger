@@ -125,6 +125,21 @@ int main(int argc, char* argv[])
 
     std::println("mincut value: {}", value);
 
+    igraph_bool_t directed = igraph_is_directed(&g);
+
+    std::println("edges in cut");
+    for (igraph_int_t i = 0; i < igraph_vector_int_size(&cut); i++) {
+        igraph_int_t edge = VECTOR(cut)[i];
+        igraph_int_t from = IGRAPH_FROM(&g, edge);
+        igraph_int_t to  = IGRAPH_TO  (&g, edge);
+        if (!directed && from > to) {
+            igraph_int_t tmp = from;
+            from = to;
+            to = tmp;
+        }
+        printf("%" IGRAPH_PRId "-%" IGRAPH_PRId, from, to);
+    }
+
     // free partition and cut vectors
     igraph_vector_int_destroy(&cut);
     igraph_vector_int_destroy(&partition2);
