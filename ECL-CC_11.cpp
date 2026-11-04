@@ -47,6 +47,7 @@ June 2018.
 #include <vector>
 #include <random>
 #include <chrono>
+#include <print>
 #include <sys/time.h>
 #include "ECLgraph.h"
 
@@ -160,8 +161,7 @@ static void verify(const int v, const int id, const int* const __restrict__ nidx
 }
 
 
-
-std::vector< std::pair<int, int> > edgelist_create(const int nodes, int * const __restrict__ nidx, int * const __restrict__ nlist) {
+static std::vector< std::pair<int, int> > edgelist_create(const int nodes, const int * const __restrict__ nidx, int * const __restrict__ nlist) {
 
   std::set< std::pair<int,int> > edgelist_set;
   for (int i = 0; i < nodes; i++) {
@@ -263,19 +263,12 @@ void print_graph(const ECLgraph & g, const std::vector< std::pair<int, int> >& e
 
   }
 
-  // for (int v = 0; v < g_cut.nodes; v++) {
-  //   printf("%d neighbors: ", v);
-  //   for (int i = nindex_cut[v]; i < nindex_cut[v + 1]; i++) {
-  //     printf("%d ", nlist_cut[i]);
-  //   }
-  //   printf("\n");
-  // }
 }
 
 void create_permutation(std::vector< std::pair<int,int> > &edgelist) {
 
   // generate random seed each time
-std::random_device rd;
+  std::random_device rd;
   // set random number engine
   std::mt19937 engine(rd());
 
@@ -293,10 +286,11 @@ int main(int argc, char* argv[])
   printf("ECL-CC v1.1 OpenMP (%s)\n", __FILE__);
   printf("Copyright 2017-2020 Texas State University\n");
 
-  if (argc != 3) {fprintf(stderr, "USAGE: %s input_file_name number_permutations\n\n", argv[0]);  exit(-1);}
+  if (argc != 4) {fprintf(stderr, "USAGE: %s input_file_name number_permutations seed\n\n", argv[0]);  exit(-1);}
 
   ECLgraph g = readECLgraph(argv[1]);
   const int num_permutations = std::stoi(argv[2]);
+  const int seed = std::stoi(argv[3]);
 
   int* const nodestatus = new int [g.nodes];
   printf("input graph: %d nodes and %d edges (%s)\n", g.nodes, g.edges, argv[1]);
@@ -334,7 +328,8 @@ int main(int argc, char* argv[])
 
     int cut_size = static_cast<int>( edgelist_cut.size() );
 
-    //   struct timeval start, end;
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
     printf("running program...\n");
     while( true ) {
 
@@ -357,6 +352,11 @@ int main(int argc, char* argv[])
 
     }
 
+    const std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+    auto time_span = duration_cast<std::chrono::duration<double>>(end - start);
+
+    std::println("runtime: {} seconds", time_span.count() );
     // display_edges(edgelist_cut);
 
     runchecks(g, nodestatus, edgelist_cut, s1);
