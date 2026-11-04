@@ -265,22 +265,6 @@ void print_graph(const ECLgraph & g, const std::vector< std::pair<int, int> >& e
 
 }
 
-void create_permutation(std::vector< std::pair<int,int> > &edgelist) {
-
-  // generate random seed each time
-  std::random_device rd;
-  // set random number engine
-  std::mt19937 engine(rd());
-
-  // set min max of random range
-  std::uniform_int_distribution<int> dist(0, static_cast<int>(edgelist.size()) - 1);
-
-  for (std::size_t i = 0; i < edgelist.size(); i++)
-  {
-    std::swap(edgelist[i], edgelist[dist(engine)]);
-  }
-}
-
 int main(int argc, char* argv[])
 {
   printf("ECL-CC v1.1 OpenMP (%s)\n", __FILE__);
@@ -317,60 +301,85 @@ int main(int argc, char* argv[])
 
   runchecks(g, nodestatus, std::vector< std::pair<int,int> >(), s1);
 
-  std::vector< std::pair<int,int> > best_edgelist = edgelist;
+  // edgelist to keep track of best cut
+  std::vector< std::pair<int,int> > edgelist_best = edgelist;
+
+  // edgelist variable which will be set initially to the permutation being tested
+  std::vector< std::pair<int,int> > edgelist_cut = edgelist;
+
+  // genereate random engin based on seed
+  std::mt19937 engine(seed);
+
+  // shuffle initial elements using seed provided
+  std::ranges::shuffle(edgelist_cut, engine);
+
+  // start time for karger program
+  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
   for (int i = 0; i < num_permutations; i++)
   {
 
-    std::vector< std::pair<int,int> > edgelist_cut = edgelist;
-
-    create_permutation(edgelist_cut);
-
+    // keep track of current cut size
     int cut_size = static_cast<int>( edgelist_cut.size() );
 
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
-    printf("running program...\n");
+    printf("running permutation %d...\n", (i+1));
     while( true ) {
 
-
+      // check the number of connected components
       s1 = checkcc(g, nodestatus, edgelist_cut);
 
+      // get the number of connected components
       const int cc = static_cast<int>(s1.size());
+
+      // if cc == 2, two connected components found
       if (cc == 2) {
         break;
       }
+
+      // get half of the current cut size
       cut_size = cut_size / 2;
+
+      // variable to keep track of the new end of the edgelist_cut
       int newend;
+
+      // if there are less than 2 connected components, increase the cut size
       if (cc < 2) {
         newend = static_cast<int>( edgelist_cut.size() ) + std::max(cut_size, 1);
-      }
+      } // if there are more than 2 connected components, decrease the cut size
       else {
         newend = static_cast<int>( edgelist_cut.size() ) - std::max(cut_size, 1);
       }
+      // assign the new end of the edgelist_cut
       edgelist_cut.assign(edgelist_cut.begin(), edgelist_cut.begin() + newend);
 
     }
 
-    const std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-
-    auto time_span = duration_cast<std::chrono::duration<double>>(end - start);
-
-    std::println("runtime: {} seconds", time_span.count() );
-    // display_edges(edgelist_cut);
-
+    // do a final check to see if there are two connected components found
     runchecks(g, nodestatus, edgelist_cut, s1);
 
-    // printf("edgelist cut size: %lu\n", edgelist_cut.size());
 
-    if (best_edgelist.size() > edgelist_cut.size()) {
+    // if the new edgelist_cut is better than the current best, update the best
+    if (edgelist_best.size() > edgelist_cut.size()) {
       printf("new top edgelist found of length %lu \n", edgelist_cut.size());
-      best_edgelist = edgelist_cut;
+      edgelist_best = edgelist_cut;
     }
 
-    printf("program complete\n------------\n");
+    printf("permutation %d complete\n------------\n", (i+1));
+
+    // set edgelist cut back to initial edgelist
+    edgelist_cut = edgelist;
+
+    // get next permutation
+    std::ranges::next_permutation(edgelist);
 
   }
+  const std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+  auto time_span = duration_cast<std::chrono::duration<double>>(end - start);
+
+  std::println("runtime: {} seconds", time_span.count() );
+
+  std::println("Program Complete");
 
   delete [] nodestatus;
   return 0;
