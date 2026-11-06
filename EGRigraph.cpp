@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
             from = to;
             to = tmp;
         }
-        printf("%" IGRAPH_PRId "-%" IGRAPH_PRId, from, to);
+        printf("(" "%" IGRAPH_PRId "-%" IGRAPH_PRId ")", from, to);
     }
 
     // free partition and cut vectors

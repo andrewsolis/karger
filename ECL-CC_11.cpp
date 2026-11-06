@@ -270,6 +270,9 @@ int main(int argc, char* argv[])
   printf("ECL-CC v1.1 OpenMP (%s)\n", __FILE__);
   printf("Copyright 2017-2020 Texas State University\n");
 
+  // print out everytime so it prints to file
+  setvbuf(stdout, NULL, _IOLBF, 0);
+
   if (argc != 4) {fprintf(stderr, "USAGE: %s input_file_name number_permutations seed\n\n", argv[0]);  exit(-1);}
 
   ECLgraph g = readECLgraph(argv[1]);
@@ -310,14 +313,14 @@ int main(int argc, char* argv[])
   // genereate random engin based on seed
   std::mt19937 engine(seed);
 
-  // shuffle initial elements using seed provided
-  std::ranges::shuffle(edgelist_cut, engine);
 
   // start time for karger program
   std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
   for (int i = 0; i < num_permutations; i++)
   {
+    // shuffle elements using engine with seed number
+    std::ranges::shuffle(edgelist_cut, engine);
 
     // keep track of current cut size
     int cut_size = static_cast<int>( edgelist_cut.size() );
@@ -357,6 +360,7 @@ int main(int argc, char* argv[])
     // do a final check to see if there are two connected components found
     runchecks(g, nodestatus, edgelist_cut, s1);
 
+    printf("edgelist length: %lu\n", edgelist_cut.size());
 
     // if the new edgelist_cut is better than the current best, update the best
     if (edgelist_best.size() > edgelist_cut.size()) {
@@ -368,9 +372,6 @@ int main(int argc, char* argv[])
 
     // set edgelist cut back to initial edgelist
     edgelist_cut = edgelist;
-
-    // get next permutation
-    std::ranges::next_permutation(edgelist);
 
   }
   const std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
