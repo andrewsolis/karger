@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 23)
 add_executable(Karger ECLgraph.h ECL-CC_11.cpp)
 add_executable(Basic basic.cpp ECLgraph.h)
 add_executable(Karger-orig ECL-original.cpp ECLgraph.h)
+add_executable(ECLKarger ECLgraph.h ECLKarger.cpp)
 
 set(BOOST_INCLUDE_LIBRARIES graph)
 add_subdirectory(boost EXCLUDE_FROM_ALL)
