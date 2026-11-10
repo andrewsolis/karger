@@ -39,6 +39,9 @@ Symposium on High-Performance Parallel and Distributed Computing, pp. 92-104.
 June 2018.
 */
 
+#include <ostream>
+// Set to true for debug builds, false for release
+constexpr bool DEBUG_MODE = true;
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -139,12 +142,31 @@ static void verify(const int v, const int id, const int* const __restrict__ nidx
   }
 }
 
+static void printData(const int nodes, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat) {
+  printf("nodeID   nidx    status\n");
+  for (int i = 0; i < nodes; ++i) {
+      printf("%d \t %d \t %d\n", i, nidx[i], nstat[i]);
+  }
+
+  printf("Edges: ");
+
+  for (int v = 0; v < nodes; ++v) {
+    const int beg = nidx[v];
+    const int end = nidx[v + 1];
+
+    for (int i=beg; i < end; i++) {
+      printf("(%d, %d) ", v, nlist[i]);
+    }
+  }
+  printf("\n");
+}
+
 int main(int argc, char* argv[])
 {
-  printf("ECL-CC v1.1 OpenMP (%s)\n", __FILE__);
-  printf("Copyright 2017-2020 Texas State University\n");
+  printf("ECLKarger v0.1 OpenMP (%s)\n", __FILE__);
+  printf("Copyright 2025-2026 Texas State University & University of Texas at Austin\n");
 
-  if (argc != 2) {fprintf(stderr, "USAGE: %s input_file_name\n\n", argv[0]);  exit(-1);}
+  if (argc != 3) {fprintf(stderr, "USAGE: %s input_file_name num_permutations \n\n", argv[0]);  exit(-1);}
 
   ECLgraph g = readECLgraph(argv[1]);
   int* const nodestatus = new int [g.nodes];
@@ -161,6 +183,10 @@ int main(int argc, char* argv[])
   printf("minimum degree: %d edges\n", mindeg);
   printf("maximum degree: %d edges\n", maxdeg);
 
+  if constexpr (DEBUG_MODE) {
+    printData(g.nodes, g.nindex, g.nlist, nodestatus);
+  }
+
   struct timeval start, end;
   gettimeofday(&start, NULL);
 
@@ -174,6 +200,8 @@ int main(int argc, char* argv[])
   printf("compute time: %.4f s\n", runtime);
   printf("throughput: %.3f Mnodes/s\n", g.nodes * 0.000001 / runtime);
   printf("throughput: %.3f Medges/s\n", g.edges * 0.000001 / runtime);
+
+
 
   std::set<int> s1;
   for (int v = 0; v < g.nodes; v++) {

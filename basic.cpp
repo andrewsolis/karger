@@ -11,12 +11,13 @@
  *          *-----*
  *          |\   /|
  *          | \ / |
- *          |  x  |
+ *          |  X  |
  *          | / \ |
  *          |/   \|
  *          *-----*
  */
-ECLgraph createBasic() {
+
+static ECLgraph createBasic1() {
     ECLgraph g{};
 
     g.nodes = 4;
@@ -28,14 +29,33 @@ ECLgraph createBasic() {
     return g;
 }
 
+/*
+*           *     *
+ *          |\
+ *          | \
+ *          |  *     *
+ *          | / \
+ *          |/   \
+ *          *-----*
+ */
+static ECLgraph createBasic2() {
+    ECLgraph g{};
+
+    g.nodes = 6;
+    g.edges = 10;
+
+    g.nindex = new int[6]  { 0, 2, 5, 8, 10, 10 };
+    g.nlist  = new int[10] { 1, 2, 0, 2, 3, 0, 1, 3, 1, 2 };
+
+    return g;
+}
+
 void freeBasic(ECLgraph &g) {
     delete[] g.nindex;
     delete[] g.nlist;
 }
 
-void runBasic(const char* output_file) {
-    ECLgraph g = createBasic();
-
+static void writeGraph(ECLgraph &g, const char* output_file) {
     std::cout << "nodes: " <<  g.nodes << std::endl;
     std::cout << "edges: " <<  g.edges << std::endl;
 
@@ -52,14 +72,25 @@ void runBasic(const char* output_file) {
     std::cout << std::endl;
 
     writeECLgraph(g, output_file);
+}
+
+static void runBasic(const char* output_file) {
+    ECLgraph g = createBasic1();
+
+    writeGraph(g, "basicGraph1.egr");
+
+    ECLgraph g2 = createBasic2();
+
+    writeGraph(g2, "basicGraph2.egr");
 
     freeECLgraph(g);
+    freeECLgraph(g2);
 }
 
 int main(const int argc, char* argv[]) {
     std::cout << "Create Basic Graph v0.1" << std::endl;
 
-    if (argc != 2) {fprintf(stderr, "USAGE: %s output_file_name\n\n", argv[0]);  exit(-1);}
+    if (argc != 1) {fprintf(stderr, "USAGE: %s\n\n", argv[0]);  exit(-1);}
 
     runBasic(argv[1]);
 
