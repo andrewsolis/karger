@@ -30,22 +30,22 @@ static ECLgraph createBasic1() {
 }
 
 /*
-*           *     *
- *          |\
- *          | \
- *          |  *     *
- *          | / \
- *          |/   \
+*           *-----*
+ *          |\   /|\
+ *          | \ / | \
+ *          |  *  |  *
+ *          | / \ | /
+ *          |/   \|/
  *          *-----*
  */
 static ECLgraph createBasic2() {
     ECLgraph g{};
 
     g.nodes = 6;
-    g.edges = 10;
+    g.edges = 20;
 
-    g.nindex = new int[6]  { 0, 2, 5, 8, 10, 10 };
-    g.nlist  = new int[10] { 1, 2, 0, 2, 3, 0, 1, 3, 1, 2 };
+    g.nindex = new int[7]  { 0, 3, 7, 10, 14, 18, 20};
+    g.nlist  = new int[20] { 1, 2, 3, 0, 3, 4, 5, 0, 3, 4, 0, 1, 2, 4, 2, 3, 1, 5, 1, 4 };
 
     return g;
 }
@@ -66,7 +66,7 @@ static void writeGraph(ECLgraph &g, const char* output_file) {
     std::cout << std::endl;
 
     std::cout << "nlist values: ";
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < g.edges; i++) {
         std::cout << g.nlist[i] << " ";
     }
     std::cout << std::endl;

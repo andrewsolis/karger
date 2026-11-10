@@ -39,7 +39,9 @@ Symposium on High-Performance Parallel and Distributed Computing, pp. 92-104.
 June 2018.
 */
 
-#include <ostream>
+#include <random>
+#include <unordered_set>
+#include <vector>
 // Set to true for debug builds, false for release
 constexpr bool DEBUG_MODE = true;
 
@@ -142,7 +144,11 @@ static void verify(const int v, const int id, const int* const __restrict__ nidx
   }
 }
 
-static void printData(const int nodes, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat) {
+static void printData(const int nodes,
+                      const int* const __restrict__ nidx,
+                      const int* const __restrict__ nlist,
+                      const int* const __restrict__ nstat,
+                      const std::vector< std::pair<int, int> >& edgelist) {
   printf("nodeID   nidx    status\n");
   for (int i = 0; i < nodes; ++i) {
       printf("%d \t %d \t %d\n", i, nidx[i], nstat[i]);
@@ -159,6 +165,53 @@ static void printData(const int nodes, const int* const __restrict__ nidx, const
     }
   }
   printf("\n");
+
+  printf("Edgelist: ");
+
+  for (const auto & it : edgelist) {
+    printf("(%d, %d) ", it.first, it.second);
+  }
+  printf("\n");
+}
+
+static std::vector<std::pair<int, int>> getedgelist(const int nodes,
+                                                 const int* const __restrict__ nidx,
+                                                 int * const __restrict__ nlist) {
+  std::set< std::pair<int, int> > edgeset;
+
+  for (int v = 0; v < nodes; ++v) {
+    const int beg = nidx[v];
+    const int end = nidx[v + 1];
+
+    for (int i=beg; i < end; i++) {
+      int first = std::min(v, nlist[i]);
+      int second = std::max(v, nlist[i]);
+      std::pair<int,int> edge(first, second);
+      edgeset.insert(edge);
+    }
+  }
+
+  std::vector edgelist(edgeset.begin(), edgeset.end() );
+  return edgelist;
+}
+
+static void printpermutation(const std::vector< std::pair<int, int> >& edgelist) {
+
+  printf("edge permutation: ");
+  for (const auto & it : edgelist) {
+    printf("(%d, %d) ", it.first, it.second);
+  }
+
+  printf("\n");
+}
+
+static void printedges(const std::vector<std::pair<int, int>>& edgelist) {
+  printf("edges: ");
+  for (const std::pair edge : edgelist){
+    printf("(%d, %d) ", edge.first, edge.second);
+  }
+
+  printf("\n");
 }
 
 int main(int argc, char* argv[])
@@ -166,9 +219,11 @@ int main(int argc, char* argv[])
   printf("ECLKarger v0.1 OpenMP (%s)\n", __FILE__);
   printf("Copyright 2025-2026 Texas State University & University of Texas at Austin\n");
 
-  if (argc != 3) {fprintf(stderr, "USAGE: %s input_file_name num_permutations \n\n", argv[0]);  exit(-1);}
+  if (argc != 4) {fprintf(stderr, "USAGE: %s input_file_name num_permutations seed\n\n", argv[0]);  exit(-1);}
 
   ECLgraph g = readECLgraph(argv[1]);
+  const int numpermutations = std::stoi(argv[2]);
+  const int seed = std::stoi(argv[3]);
   int* const nodestatus = new int [g.nodes];
 
   printf("input graph: %d nodes and %d edges (%s)\n", g.nodes, g.edges, argv[1]);
@@ -183,9 +238,56 @@ int main(int argc, char* argv[])
   printf("minimum degree: %d edges\n", mindeg);
   printf("maximum degree: %d edges\n", maxdeg);
 
+
+  // get initial edgelist
+  std::vector< std::pair<int, int> > edgelist = getedgelist(g.nodes, g.nindex, g.nlist);
+
+  // create array for storing nindex as it is updated
+  int* newnindex = new int[g.nodes + 1];
+
   if constexpr (DEBUG_MODE) {
-    printData(g.nodes, g.nindex, g.nlist, nodestatus);
+    printData(g.nodes, g.nindex, g.nlist, nodestatus, edgelist);
   }
+
+  // create random generator
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  // iterate for number of permutations
+  for (int p = 0; p < numpermutations; p++ ) {
+
+    int * newnlist = new int[edgelist.size() * 2];
+    // shuffle initial edgelist
+    std::ranges::shuffle(edgelist, gen);
+    printpermutation(edgelist);
+
+    // get first half of edges
+    long initend = std::ssize(edgelist) / 2;;
+    std::vector edges(edgelist.begin(), (edgelist.begin() + initend) );
+
+    printedges(edges);
+
+    int beg, end = 0;
+    for (int i = 0; i < g.nodes; i++) {
+      for (int j = 0; j < g.nodes; j++ ) {
+
+        int first = std::min(i, j);
+        int second = std::max(i, j);
+
+        std::pair t(first, second);
+        if (std::ranges::find(edges, t) != edges.end()) {
+
+        }
+
+      }
+    }
+
+
+    delete[] newnlist;
+
+  }
+
+  delete[] newnindex;
 
   struct timeval start, end;
   gettimeofday(&start, NULL);
