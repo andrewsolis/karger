@@ -53,7 +53,18 @@ constexpr bool DEBUG_MODE = true;
 #include "ECLgraph.h"
 #include "ECLKarger.h"
 
-void init(const int nodes, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat)
+// check to see if edge exists in list
+static bool edgecheck(int i, int j, std::vector<std::pair<int, int>> & edges) {
+  const std::pair edge(std::min(i, j), std::max(i, j));
+
+  return std::ranges::contains(edges, edge);
+}
+
+void init(const int nodes,
+          const int* const __restrict__ nidx,
+          const int* const __restrict__ nlist,
+          int* const __restrict__ nstat,
+          std::vector<std::pair<int, int>> & edgecut)
 {
   #pragma omp parallel for schedule(guided) default(none) shared(nodes, nidx, nlist, nstat)
   for (int v = 0; v < nodes; v++) {
@@ -62,7 +73,9 @@ void init(const int nodes, const int* const __restrict__ nidx, const int* const 
     int m = v;
     int i = beg;
     while ((m == v) && (i < end)) {
-      m = std::min(m, nlist[i]);
+      if (edgecheck(v, nlist[i], edgecut)) {
+        m = std::min(m, nlist[i]);
+      }
       i++;
     }
     nstat[v] = m;
@@ -83,7 +96,11 @@ static inline int representative(const int idx, int* const __restrict__ nstat)
   return curr;
 }
 
-void compute(const int nodes, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat)
+void compute(const int nodes,
+             const int* const __restrict__ nidx,
+             const int* const __restrict__ nlist,
+             int* const __restrict__ nstat,
+             std::vector<std::pair<int, int>> & edgecut)
 {
   #pragma omp parallel for schedule(guided) default(none) shared(nodes, nidx, nlist, nstat)
   for (int v = 0; v < nodes; v++) {
@@ -94,6 +111,7 @@ void compute(const int nodes, const int* const __restrict__ nidx, const int* con
       int vstat = representative(v, nstat);
       for (int i = beg; i < end; i++) {
         const int nli = nlist[i];
+        if (!edgecheck(v, nli, edgecut)){ continue; }
         if (v > nli) {
           int ostat = representative(nli, nstat);
           bool repeat;
@@ -148,7 +166,7 @@ static void printData(const int nodes,
                       const int* const __restrict__ nidx,
                       const int* const __restrict__ nlist,
                       const std::vector< std::pair<int, int> >& edgelist) {
-  printf("nodeID   nidx    status\n");
+  printf("nodeID   nidx\n");
   for (int i = 0; i < nodes; ++i) {
       printf("%d \t %d\n", i, nidx[i]);
   }
@@ -222,6 +240,15 @@ static void printedges(const std::vector<std::pair<int, int>>& edgelist) {
   }
 
   printf("\n");
+}
+
+static int getcc(const int nodes, const int* nodestatus) {
+  std::set<int> s1;
+  for (int v = 0; v < nodes; v++) {
+    s1.insert(nodestatus[v]);
+  }
+
+  return static_cast<int>(s1.size());
 }
 
 static int verifycc(
@@ -311,10 +338,10 @@ int main(int argc, char* argv[])
     }
 
     // get first half of edges
-    std::vector edges(edgelist.begin(), (edgelist.begin() + cut_size ));
+    std::vector edgecut(edgelist.begin(), (edgelist.begin() + cut_size ));
 
     if constexpr (DEBUG_MODE) {
-      printedges(edges);
+      printedges(edgecut);
     }
 
     bool found = false;
@@ -325,15 +352,18 @@ int main(int argc, char* argv[])
 
 
       // test new nlist and nindex
-      init(g.nodes, g.nindex ,g.nlist, nodestatus);
-      compute(g.nodes, g.nindex, g.nlist, nodestatus);
+      init(g.nodes, g.nindex ,g.nlist, nodestatus, edgecut);
+      compute(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
       flatten(g.nodes, nodestatus);
 
       // verify results
-
-      int cc = verifycc(g.nodes, g.nindex, g.nlist, nodestatus);
+      const int cc = verifycc(g.nodes, g.nindex, g.nlist, nodestatus);
 
       printf("cc: %d\n", cc);
+
+      if (cc == 2) {
+
+      }
 
       delete[] nodestatus;
 
