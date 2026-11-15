@@ -344,8 +344,9 @@ int main(int argc, char* argv[])
       printedges(edgecut);
     }
 
-    bool found = false;
-    while (!found) {
+    // loop through the array using binary search to find the cut of the edge permutation
+    // for edges to keep
+    while (true) {
 
       // generate nodestatus array to store cc count
       int* const nodestatus = new int [g.nodes];
@@ -361,13 +362,24 @@ int main(int argc, char* argv[])
 
       printf("cc: %d\n", cc);
 
-      if (cc == 2) {
+      if (cc == 2){ break; }
 
+      // edgecut not found so create the new edgelist cut based on how many
+      // connected components exit
+      cut_size = cut_size / 2;
+
+      if (cc < 2)
+      {
+        // update edgelist
+      }
+      else
+      {
+        // update edgelist
       }
 
       delete[] nodestatus;
 
-      found = true;
+      break;
     }
 
   }
