@@ -147,11 +147,10 @@ static void verify(const int v, const int id, const int* const __restrict__ nidx
 static void printData(const int nodes,
                       const int* const __restrict__ nidx,
                       const int* const __restrict__ nlist,
-                      const int* const __restrict__ nstat,
                       const std::vector< std::pair<int, int> >& edgelist) {
   printf("nodeID   nidx    status\n");
   for (int i = 0; i < nodes; ++i) {
-      printf("%d \t %d \t %d\n", i, nidx[i], nstat[i]);
+      printf("%d \t %d\n", i, nidx[i]);
   }
 
   printf("nodelist: ");
@@ -225,9 +224,46 @@ static void printedges(const std::vector<std::pair<int, int>>& edgelist) {
   printf("\n");
 }
 
+static int verifycc(
+  const int nodes,
+  const int *const __restrict__ nindex,
+  const int *const __restrict__ nlist,
+  int *nodestatus) {
+
+  std::set<int> s1;
+  for (int v = 0; v < nodes; v++) {
+    s1.insert(nodestatus[v]);
+  }
+  printf("number of connected components: %d\n", (int)s1.size());
+
+  for (int v = 0; v < nodes; v++) {
+    for (int i = nindex[v]; i < nindex[v + 1]; i++) {
+      if (nodestatus[nlist[i]] != nodestatus[v]) {fprintf(stderr, "ERROR: found adjacent nodes in different components\n\n");  exit(-1);}
+    }
+  }
+
+  for (int v = 0; v < nodes; v++) {
+    if (nodestatus[v] < 0) {fprintf(stderr, "ERROR: found negative component number\n\n");  exit(-1);}
+  }
+
+  std::set<int> s2;
+  int count = 0;
+  for (int v = 0; v < nodes; v++) {
+    if (nodestatus[v] >= 0) {
+      count++;
+      s2.insert(nodestatus[v]);
+      verify(v, nodestatus[v], nindex, nlist, nodestatus);
+    }
+  }
+  if (s1.size() != s2.size()) {fprintf(stderr, "ERROR: number of components do not match\n\n");  exit(-1);}
+  if (s1.size() != (unsigned)count) {fprintf(stderr, "ERROR: component IDs are not unique\n\n");  exit(-1);}
+
+  return (int)s1.size();
+}
+
 int main(int argc, char* argv[])
 {
-  printf("ECLKarger v0.1 OpenMP (%s)\n", __FILE__);
+  printf("ECLKarger v0.1 (%s)\n", __FILE__);
   printf("Copyright 2025-2026 Texas State University & University of Texas at Austin\n");
 
   if (argc != 4) {fprintf(stderr, "USAGE: %s input_file_name num_permutations seed\n\n", argv[0]);  exit(-1);}
@@ -235,7 +271,6 @@ int main(int argc, char* argv[])
   ECLgraph g = readECLgraph(argv[1]);
   const int numpermutations = std::stoi(argv[2]);
   const int seed = std::stoi(argv[3]);
-  int* const nodestatus = new int [g.nodes];
 
   printf("input graph: %d nodes and %d edges (%s)\n", g.nodes, g.edges, argv[1]);
   printf("average degree: %.2f edges per node\n", 1.0 * g.edges / g.nodes);
@@ -253,11 +288,8 @@ int main(int argc, char* argv[])
   // get initial edgelist
   std::vector< std::pair<int, int> > edgelist = getedgelist(g.nodes, g.nindex, g.nlist);
 
-  // create array for storing nindex as it is updated
-  int* newnindex = new int[g.nodes + 1];
-
   if constexpr (DEBUG_MODE) {
-    printData(g.nodes, g.nindex, g.nlist, nodestatus, edgelist);
+    printData(g.nodes, g.nindex, g.nlist, edgelist);
   }
 
   // create random generator
@@ -266,17 +298,20 @@ int main(int argc, char* argv[])
 
   // iterate for number of permutations
   for (int p = 0; p < numpermutations; p++ ) {
-    int* newnlist = new int[edgelist.size() * 2];
+
+    // keep track of cut size
+    int cut_size = static_cast<int>( edgelist.size() / 2 );
 
     // shuffle initial edgelist
     std::ranges::shuffle(edgelist, gen);
+
+
     if constexpr (DEBUG_MODE) {
       printpermutation(edgelist);
     }
 
     // get first half of edges
-    long initend = std::ssize(edgelist) / 2;;
-    std::vector edges(edgelist.begin(), (edgelist.begin() + initend) );
+    std::vector edges(edgelist.begin(), (edgelist.begin() + cut_size ));
 
     if constexpr (DEBUG_MODE) {
       printedges(edges);
@@ -284,92 +319,29 @@ int main(int argc, char* argv[])
 
     bool found = false;
     while (!found) {
-      
-      // build new nlist and nindex arrays for graph
-      int start = 0, last = 0;
-      for (int i = 0; i < g.nodes; i++) {
-        newnindex[i] = start;
-        for (int j = 0; j < g.nodes; j++ ) {
 
-          int first = std::min(i, j);
-          int second = std::max(i, j);
+      // generate nodestatus array to store cc count
+      int* const nodestatus = new int [g.nodes];
 
-          std::pair t(first, second);
-          if (std::ranges::find(edges, t) != edges.end()) {
-            newnlist[last] = j;
-            last++;
-          }
-        }
-
-        start = last;
-      }
-
-      newnindex[g.nodes] = last;
-
-      printf("newnindex: [");
-      for (int i = 0; i < (g.nodes + 1); i++) {
-        printf("%d,",newnindex[i]);
-      }
-
-      printf("]\n");
-
-      printf("nodelist: ");
-      for (int v = 0; v < g.nodes; ++v) {
-        const int beg = newnindex[v];
-        const int end = newnindex[v + 1];
-
-        for (int i=beg; i < end; i++) {
-          printf("%d, ", newnlist[i]);
-        }
-      }
-      printf("\n");
-
-      // generate new nnodestatus array to store cc
-      int* const newnodestatus = new int [g.nodes];
 
       // test new nlist and nindex
-      init(g.nodes, newnindex, newnlist, newnodestatus);
-      compute(g.nodes, newnindex, newnlist, newnodestatus);
-      flatten(g.nodes, newnodestatus);
+      init(g.nodes, g.nindex ,g.nlist, nodestatus);
+      compute(g.nodes, g.nindex, g.nlist, nodestatus);
+      flatten(g.nodes, nodestatus);
 
       // verify results
 
-      std::set<int> s1;
-      for (int v = 0; v < g.nodes; v++) {
-        s1.insert(newnodestatus[v]);
-      }
-      printf("number of connected components: %d\n", (int)s1.size());
+      int cc = verifycc(g.nodes, g.nindex, g.nlist, nodestatus);
 
-      for (int v = 0; v < g.nodes; v++) {
-        for (int i = newnindex[v]; i < newnindex[v + 1]; i++) {
-          if (newnodestatus[newnlist[i]] != newnodestatus[v]) {fprintf(stderr, "ERROR: found adjacent nodes in different components\n\n");  exit(-1);}
-        }
-      }
+      printf("cc: %d\n", cc);
 
-      for (int v = 0; v < g.nodes; v++) {
-        if (newnodestatus[v] < 0) {fprintf(stderr, "ERROR: found negative component number\n\n");  exit(-1);}
-      }
+      delete[] nodestatus;
 
-      std::set<int> s2;
-      int count = 0;
-      for (int v = 0; v < g.nodes; v++) {
-        if (newnodestatus[v] >= 0) {
-          count++;
-          s2.insert(newnodestatus[v]);
-          verify(v, newnodestatus[v], newnindex, newnlist, newnodestatus);
-        }
-      }
-      if (s1.size() != s2.size()) {fprintf(stderr, "ERROR: number of components do not match\n\n");  exit(-1);}
-      if (s1.size() != (unsigned)count) {fprintf(stderr, "ERROR: component IDs are not unique\n\n");  exit(-1);}
-
-      delete[] newnlist;
-      delete[] newnodestatus;
+      found = true;
     }
 
   }
 
-  delete[] newnindex;
 
-  delete [] nodestatus;
   return 0;
 }
