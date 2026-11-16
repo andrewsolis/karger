@@ -230,23 +230,17 @@ static std::vector<std::pair<int, int>> getedgelist(const int nodes,
   return edgelist;
 }
 
-static void printpermutation(const std::vector< std::pair<int, int> >& edgelist) {
-
-  printf("edge permutation: ");
-  for (const auto & it : edgelist) {
-    printf("(%d, %d) ", it.first, it.second);
-  }
-
-  printf("\n");
-}
-
 static void printedges(const std::vector<std::pair<int, int>>& edgelist) {
+  printf("edgelist.size(): %ld\n", edgelist.size() );
   printf("edges: ");
   for (const std::pair edge : edgelist){
     printf("(%d, %d) ", edge.first, edge.second);
   }
 
   printf("\n");
+
+  if (edgelist.size() > 10) {fprintf(stderr, "ERROR: growing edgelist\n\n");  exit(-1);}
+
 }
 
 static int getcc(const int nodes, const int* nodestatus) {
@@ -258,7 +252,7 @@ static int getcc(const int nodes, const int* nodestatus) {
   return static_cast<int>(s1.size());
 }
 
-static int verifycc(
+static void verifycc(
   const int nodes,
   const int *const __restrict__ nindex,
   const int *const __restrict__ nlist,
@@ -294,7 +288,6 @@ static int verifycc(
   if (s1.size() != s2.size()) {fprintf(stderr, "ERROR: number of components do not match\n\n");  exit(-1);}
   if (s1.size() != (unsigned)count) {fprintf(stderr, "ERROR: component IDs are not unique\n\n");  exit(-1);}
 
-  return (int)s1.size();
 }
 
 int main(int argc, char* argv[])
@@ -322,15 +315,11 @@ int main(int argc, char* argv[])
 
 
   // get initial edgelist
-  std::vector< std::pair<int, int> > edgelist = getedgelist(g.nodes, g.nindex, g.nlist);
-
-  if constexpr (DEBUG_MODE) {
-    printData(g.nodes, g.nindex, g.nlist, edgelist);
-  }
+   std::vector< std::pair<int, int> > edgelist = getedgelist(g.nodes, g.nindex, g.nlist);
 
   // create random generator
   std::random_device rd;
-  std::mt19937 gen(1337);
+  std::mt19937 gen(rd());
 
   // iterate for number of permutations
   for (int p = 0; p < numpermutations; p++ ) {
@@ -341,25 +330,16 @@ int main(int argc, char* argv[])
     // shuffle initial edgelist
     std::ranges::shuffle(edgelist, gen);
 
-
-    if constexpr (DEBUG_MODE) {
-      printpermutation(edgelist);
-    }
-
     // get first half of edges
     std::vector edgecut(edgelist.begin(), (edgelist.begin() + cut_size ));
 
-    if constexpr (DEBUG_MODE) {
-      printedges(edgecut);
-    }
+
+    // generate nodestatus array to store cc count
+    int* const nodestatus = new int [g.nodes];
 
     // loop through the array using binary search to find the cut of the edge permutation
     // for edges to keep
     while (true) {
-
-      // generate nodestatus array to store cc count
-      int* const nodestatus = new int [g.nodes];
-
 
       // test new nlist and nindex
       init(g.nodes, g.nindex ,g.nlist, nodestatus, edgecut);
@@ -367,9 +347,7 @@ int main(int argc, char* argv[])
       flatten(g.nodes, nodestatus);
 
       // verify results
-      const int cc = verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
-
-      printf("cc: %d\n", cc);
+      const int cc = getcc(g.nodes, nodestatus);
 
       if (cc == 2){ break; }
 
@@ -390,16 +368,13 @@ int main(int argc, char* argv[])
         edgeend = static_cast<int>( edgecut.size() ) + std::max(cut_size, 1);
       }
 
-      edgecut.assign(edgecut.begin(), edgecut.begin() + edgeend);
+      edgecut.assign(edgelist.begin(), edgelist.begin() + edgeend);
 
-      if constexpr (DEBUG_MODE) {
-        printf("new edgecut\n");
-        printedges(edgecut);
-      }
-
-      delete[] nodestatus;
 
     }
+
+    verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
+    delete[] nodestatus;
 
   }
 
