@@ -169,46 +169,6 @@ static void verify(
   }
 }
 
-static void printData(const int nodes,
-                      const int* const __restrict__ nidx,
-                      const int* const __restrict__ nlist,
-                      const std::vector< std::pair<int, int> >& edgelist) {
-  printf("nodeID   nidx\n");
-  for (int i = 0; i < nodes; ++i) {
-      printf("%d \t %d\n", i, nidx[i]);
-  }
-
-  printf("nodelist: ");
-  for (int v = 0; v < nodes; ++v) {
-    const int beg = nidx[v];
-    const int end = nidx[v + 1];
-
-    for (int i=beg; i < end; i++) {
-      printf("%d, ", nlist[i]);
-    }
-  }
-  printf("\n");
-
-  printf("Edges: ");
-
-  for (int v = 0; v < nodes; ++v) {
-    const int beg = nidx[v];
-    const int end = nidx[v + 1];
-
-    for (int i=beg; i < end; i++) {
-      printf("(%d, %d) ", v, nlist[i]);
-    }
-  }
-  printf("\n");
-
-  printf("Edgelist: ");
-
-  for (const auto & it : edgelist) {
-    printf("(%d, %d) ", it.first, it.second);
-  }
-  printf("\n");
-}
-
 static std::vector<std::pair<int, int>> getedgelist(const int nodes,
                                                  const int* const __restrict__ nidx,
                                                  int * const __restrict__ nlist) {
@@ -230,18 +190,6 @@ static std::vector<std::pair<int, int>> getedgelist(const int nodes,
   return edgelist;
 }
 
-static void printedges(const std::vector<std::pair<int, int>>& edgelist) {
-  printf("edgelist.size(): %ld\n", edgelist.size() );
-  printf("edges: ");
-  for (const std::pair edge : edgelist){
-    printf("(%d, %d) ", edge.first, edge.second);
-  }
-
-  printf("\n");
-
-  if (edgelist.size() > 10) {fprintf(stderr, "ERROR: growing edgelist\n\n");  exit(-1);}
-
-}
 
 static int getcc(const int nodes, const int* nodestatus) {
   std::set<int> s1;
@@ -286,6 +234,59 @@ static void verifycc(
   }
   if (s1.size() != s2.size()) {fprintf(stderr, "ERROR: number of components do not match\n\n");  exit(-1);}
   if (s1.size() != (unsigned)count) {fprintf(stderr, "ERROR: component IDs are not unique\n\n");  exit(-1);}
+
+}
+
+static void printData(const int nodes,
+                      const int* const __restrict__ nidx,
+                      const int* const __restrict__ nlist,
+                      const std::vector< std::pair<int, int> >& edgelist) {
+  printf("nodeID   nidx\n");
+  for (int i = 0; i < nodes; ++i) {
+    printf("%d \t %d\n", i, nidx[i]);
+  }
+
+  printf("nodelist: ");
+  for (int v = 0; v < nodes; ++v) {
+    const int beg = nidx[v];
+    const int end = nidx[v + 1];
+
+    for (int i=beg; i < end; i++) {
+      printf("%d, ", nlist[i]);
+    }
+  }
+  printf("\n");
+
+  printf("Edges: ");
+
+  for (int v = 0; v < nodes; ++v) {
+    const int beg = nidx[v];
+    const int end = nidx[v + 1];
+
+    for (int i=beg; i < end; i++) {
+      printf("(%d, %d) ", v, nlist[i]);
+    }
+  }
+  printf("\n");
+
+  printf("Edgelist: ");
+
+  for (const auto & it : edgelist) {
+    printf("(%d, %d) ", it.first, it.second);
+  }
+  printf("\n");
+}
+
+static void printedges(const std::vector<std::pair<int, int>>& edgelist) {
+  printf("edgelist.size(): %ld\n", edgelist.size() );
+  printf("edges: ");
+  for (const std::pair edge : edgelist){
+    printf("(%d, %d) ", edge.first, edge.second);
+  }
+
+  printf("\n");
+
+  if (edgelist.size() > 10) {fprintf(stderr, "ERROR: growing edgelist\n\n");  exit(-1);}
 
 }
 
