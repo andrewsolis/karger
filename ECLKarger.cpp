@@ -73,7 +73,7 @@ void init(const int nodes,
     int m = v;
     int i = beg;
     while ((m == v) && (i < end)) {
-      if (edgecheck(v, nlist[i], edgecut)) {
+      if (edgecheck(m, nlist[i], edgecut)) {
         m = std::min(m, nlist[i]);
       }
       i++;
@@ -151,13 +151,20 @@ void flatten(const int nodes, int* const __restrict__ nstat)
   }
 }
 
-static void verify(const int v, const int id, const int* const __restrict__ nidx, const int* const __restrict__ nlist, int* const __restrict__ nstat)
+static void verify(
+  const int v,
+  const int id,
+  const int* const __restrict__ nidx,
+  const int* const __restrict__ nlist,
+  int* const __restrict__ nstat,
+  std::vector<std::pair<int, int>> & edgecut)
 {
   if (nstat[v] >= 0) {
     if (nstat[v] != id) {fprintf(stderr, "ERROR: found incorrect ID value\n\n");  exit(-1);}
     nstat[v] = -1;
     for (int i = nidx[v]; i < nidx[v + 1]; i++) {
-      verify(nlist[i], id, nidx, nlist, nstat);
+      if (edgecheck(v, nlist[i], edgecut))
+      verify(nlist[i], id, nidx, nlist, nstat, edgecut);
     }
   }
 }
@@ -255,7 +262,8 @@ static int verifycc(
   const int nodes,
   const int *const __restrict__ nindex,
   const int *const __restrict__ nlist,
-  int *nodestatus) {
+  int *nodestatus,
+  std::vector<std::pair<int, int>> & edgecut) {
 
   std::set<int> s1;
   for (int v = 0; v < nodes; v++) {
@@ -265,6 +273,7 @@ static int verifycc(
 
   for (int v = 0; v < nodes; v++) {
     for (int i = nindex[v]; i < nindex[v + 1]; i++) {
+      if (!edgecheck(v, nlist[i], edgecut)) { continue; }
       if (nodestatus[nlist[i]] != nodestatus[v]) {fprintf(stderr, "ERROR: found adjacent nodes in different components\n\n");  exit(-1);}
     }
   }
@@ -279,7 +288,7 @@ static int verifycc(
     if (nodestatus[v] >= 0) {
       count++;
       s2.insert(nodestatus[v]);
-      verify(v, nodestatus[v], nindex, nlist, nodestatus);
+      verify(v, nodestatus[v], nindex, nlist, nodestatus, edgecut);
     }
   }
   if (s1.size() != s2.size()) {fprintf(stderr, "ERROR: number of components do not match\n\n");  exit(-1);}
@@ -358,7 +367,7 @@ int main(int argc, char* argv[])
       flatten(g.nodes, nodestatus);
 
       // verify results
-      const int cc = verifycc(g.nodes, g.nindex, g.nlist, nodestatus);
+      const int cc = verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
 
       printf("cc: %d\n", cc);
 
@@ -368,18 +377,28 @@ int main(int argc, char* argv[])
       // connected components exit
       cut_size = cut_size / 2;
 
+      int edgeend;
+
       if (cc < 2)
       {
-        // update edgelist
+        // update edgelist cut to remove 1/2 of edgecut size
+        edgeend = static_cast<int>( edgecut.size() ) - std::max(cut_size, 1);
       }
       else
       {
-        // update edgelist
+        // update edgelist cut to add 1/2 of edgecut size
+        edgeend = static_cast<int>( edgecut.size() ) + std::max(cut_size, 1);
+      }
+
+      edgecut.assign(edgecut.begin(), edgecut.begin() + edgeend);
+
+      if constexpr (DEBUG_MODE) {
+        printf("new edgecut\n");
+        printedges(edgecut);
       }
 
       delete[] nodestatus;
 
-      break;
     }
 
   }
