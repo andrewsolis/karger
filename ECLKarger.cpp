@@ -263,7 +263,6 @@ static void verifycc(
   for (int v = 0; v < nodes; v++) {
     s1.insert(nodestatus[v]);
   }
-  printf("number of connected components: %d\n", (int)s1.size());
 
   for (int v = 0; v < nodes; v++) {
     for (int i = nindex[v]; i < nindex[v + 1]; i++) {
@@ -315,7 +314,10 @@ int main(int argc, char* argv[])
 
 
   // get initial edgelist
-   std::vector< std::pair<int, int> > edgelist = getedgelist(g.nodes, g.nindex, g.nlist);
+  std::vector< std::pair<int, int> > edgelist = getedgelist(g.nodes, g.nindex, g.nlist);
+
+  // keep track of best edgecut found
+  std::vector< std::pair<int, int>> prefix = edgelist;
 
   // create random generator
   std::random_device rd;
@@ -332,7 +334,6 @@ int main(int argc, char* argv[])
 
     // get first half of edges
     std::vector edgecut(edgelist.begin(), (edgelist.begin() + cut_size ));
-
 
     // generate nodestatus array to store cc count
     int* const nodestatus = new int [g.nodes];
@@ -352,8 +353,8 @@ int main(int argc, char* argv[])
       if (cc == 2){ break; }
 
       // edgecut not found so create the new edgelist cut based on how many
-      // connected components exit
-      cut_size = cut_size / 2;
+      // connected components exit. Round up for getting better results
+      cut_size = (cut_size + 1) / 2;
 
       int edgeend;
 
@@ -370,14 +371,20 @@ int main(int argc, char* argv[])
 
       edgecut.assign(edgelist.begin(), edgelist.begin() + edgeend);
 
-
     }
 
     verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
+
+    if ( edgelist.size() - edgecut.size() < prefix.size() )
+    {
+      prefix.assign( edgelist.begin() + static_cast<int>(edgecut.size()), edgelist.end() );
+    }
+
     delete[] nodestatus;
 
   }
 
+  printf("final edgecut size: %ld\n", prefix.size() );
 
   return 0;
 }
