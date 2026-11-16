@@ -323,6 +323,9 @@ int main(int argc, char* argv[])
   std::random_device rd;
   std::mt19937 gen(rd());
 
+  // generate nodestatus array to store cc count
+  auto const nodestatus = new int [g.nodes];
+
   // iterate for number of permutations
   for (int p = 0; p < numpermutations; p++ ) {
 
@@ -335,8 +338,6 @@ int main(int argc, char* argv[])
     // get first half of edges
     std::vector edgecut(edgelist.begin(), (edgelist.begin() + cut_size ));
 
-    // generate nodestatus array to store cc count
-    int* const nodestatus = new int [g.nodes];
 
     // loop through the array using binary search to find the cut of the edge permutation
     // for edges to keep
@@ -369,22 +370,26 @@ int main(int argc, char* argv[])
         edgeend = static_cast<int>( edgecut.size() ) + std::max(cut_size, 1);
       }
 
+      // create new cut of edgelist based on the edge end found
       edgecut.assign(edgelist.begin(), edgelist.begin() + edgeend);
 
     }
 
-    verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
-
+    // once the cut is found, see if the size of the cut is smaller than the edges
+    // found before
     if ( edgelist.size() - edgecut.size() < prefix.size() )
     {
       prefix.assign( edgelist.begin() + static_cast<int>(edgecut.size()), edgelist.end() );
     }
 
-    delete[] nodestatus;
+    // verify cc
+    verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
 
   }
 
   printf("final edgecut size: %ld\n", prefix.size() );
+
+  delete[] nodestatus;
 
   return 0;
 }
