@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
   printf("ECLKarger v0.1 (%s)\n", __FILE__);
   printf("Copyright 2025-2026 Texas State University & University of Texas at Austin\n");
 
-  if (argc > 4 || argc < 3) {fprintf(stderr, "USAGE: %s input_file_name num_permutations seed[optional]\n\n", argv[0]);  exit(-1);}
+  if (argc > 5 || argc < 3) {fprintf(stderr, "USAGE: %s input_file_name num_permutations seed[optional] progress[optional]\n\n", argv[0]);  exit(-1);}
 
   // set locale to be able to use special characters
   std::setlocale(LC_ALL, "");
@@ -312,6 +312,8 @@ int main(int argc, char* argv[])
 
   // if seed passed in then store, otherwise use default value
   const int seed = argc > 3 ? std::stoi(argv[3]) : -1;
+
+  const bool progress = argc > 4 ? static_cast<bool>( std::stoi ( argv[4] ) ) : false;
 
   printf("input graph: %d nodes and %d edges (%s)\n", g.nodes, g.edges, argv[1]);
   printf("average degree: %.2f edges per node\n", 1.0 * g.edges / g.nodes);
@@ -336,13 +338,10 @@ int main(int argc, char* argv[])
     std::random_device rd;
 
   // if seed > -1, then a value was passed in, otherwise use a random value
-  std::mt19937 gen( (seed != -1) ? seed: rd() );
+  std::mt19937 gen( (seed != -1) ? seed : rd() );
 
   // generate nodestatus array to store cc count
   auto const nodestatus = new int [g.nodes];
-
-  // Hide cursor
-  show_console_cursor(false);
 
   // initialize progress bar indicator
   ProgressBar bar{
@@ -357,6 +356,12 @@ int main(int argc, char* argv[])
     option::ForegroundColor{Color::green},
     option::ShowElapsedTime{true},
     option::FontStyles{std::vector{FontStyle::bold}}  };
+
+  if (progress) {
+    // Hide cursor
+    show_console_cursor(false);
+  }
+
 
   // iterate for number of permutations
   for (int p = 0; p < numpermutations; p++ ) {
@@ -416,8 +421,11 @@ int main(int argc, char* argv[])
     // verify cc
     verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
 
-    bar.set_option(option::PostfixText{std::format("Running Permutation {}/{}", p + 1, numpermutations)});
-    bar.tick();
+    if (progress)
+    {
+      bar.set_option(option::PostfixText{std::format("Running Permutation {}/{}", p + 1, numpermutations)});
+      bar.tick();
+    }
   }
 
   // Show cursor
