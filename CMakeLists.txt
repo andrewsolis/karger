@@ -7,6 +7,7 @@ add_executable(Karger ECLgraph.h ECL-CC_11.cpp)
 add_executable(Basic basic.cpp ECLgraph.h)
 add_executable(Karger-orig ECL-original.cpp ECLgraph.h)
 add_executable(ECLKarger ECLgraph.h ECLKarger.cpp)
+target_include_directories(ECLKarger PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/indicators/include)
 
 set(BOOST_INCLUDE_LIBRARIES graph)
 add_subdirectory(boost EXCLUDE_FROM_ALL)

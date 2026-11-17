@@ -50,6 +50,12 @@ constexpr bool DEBUG_MODE = true;
 #include <set>
 #include <algorithm>
 #include <sys/time.h>
+
+// add progress bar library
+#include <indicators/progress_bar.hpp>
+#include <indicators/cursor_control.hpp>
+#include <clocale>   // used for being able to use special characters
+
 #include "ECLgraph.h"
 #include "ECLKarger.h"
 
@@ -295,6 +301,12 @@ int main(int argc, char* argv[])
 
   if (argc > 4 || argc < 3) {fprintf(stderr, "USAGE: %s input_file_name num_permutations seed[optional]\n\n", argv[0]);  exit(-1);}
 
+  // set locale to be able to use special characters
+  std::setlocale(LC_ALL, "");
+
+  // setup indicators namespace to use for progress bar
+  using namespace indicators;
+
   ECLgraph g = readECLgraph(argv[1]);
   const int numpermutations = std::stoi(argv[2]);
 
@@ -329,6 +341,23 @@ int main(int argc, char* argv[])
   // generate nodestatus array to store cc count
   auto const nodestatus = new int [g.nodes];
 
+  // Hide cursor
+  show_console_cursor(false);
+
+  // initialize progress bar indicator
+  ProgressBar bar{
+    option::BarWidth{50},
+    option::Start{"["},
+    option::Fill{"■"},
+    option::Lead{"■"},
+    option::Remainder{"-"},
+    option::End{" ]"},
+    option::PostfixText{std::format("Running Permutation {}/{}", 1, numpermutations)},
+    option::MaxProgress(numpermutations),
+    option::ForegroundColor{Color::green},
+    option::ShowElapsedTime{true},
+    option::FontStyles{std::vector{FontStyle::bold}}  };
+
   // iterate for number of permutations
   for (int p = 0; p < numpermutations; p++ ) {
 
@@ -340,7 +369,6 @@ int main(int argc, char* argv[])
 
     // get first half of edges
     std::vector edgecut(edgelist.begin(), (edgelist.begin() + cut_size ));
-
 
     // loop through the array using binary search to find the cut of the edge permutation
     // for edges to keep
@@ -388,7 +416,12 @@ int main(int argc, char* argv[])
     // verify cc
     verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
 
+    bar.set_option(option::PostfixText{std::format("Running Permutation {}/{}", p + 1, numpermutations)});
+    bar.tick();
   }
+
+  // Show cursor
+  show_console_cursor(true);
 
   printf("final edgecut size: %ld\n", prefix.size() );
 
