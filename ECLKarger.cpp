@@ -362,6 +362,9 @@ int main(int argc, char* argv[])
     show_console_cursor(false);
   }
 
+  // start runtime
+  struct timeval start, end;
+  gettimeofday(&start, NULL);
 
   // iterate for number of permutations
   for (int p = 0; p < numpermutations; p++ ) {
@@ -430,6 +433,10 @@ int main(int argc, char* argv[])
 
   // Show cursor
   show_console_cursor(true);
+
+  gettimeofday(&end, NULL);
+  double runtime = end.tv_sec + end.tv_usec / 1000000.0 - start.tv_sec - start.tv_usec / 1000000.0;
+  printf("compute time: %.4f s\n", runtime);
 
   printf("final edgecut size: %ld\n", prefix.size() );
 
