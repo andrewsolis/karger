@@ -285,9 +285,7 @@ static void printedges(const std::vector<std::pair<int, int>>& edgelist) {
   }
 
   printf("\n");
-
-  if (edgelist.size() > 10) {fprintf(stderr, "ERROR: growing edgelist\n\n");  exit(-1);}
-
+  
 }
 
 int main(int argc, char* argv[])
