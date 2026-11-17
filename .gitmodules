@@ -7,3 +7,6 @@
 [submodule "igraph"]
 	path = igraph
 	url = https://github.com/igraph/igraph
+[submodule "indicators"]
+	path = indicators
+	url = https://github.com/p-ranav/indicators.git
