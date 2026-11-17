@@ -285,7 +285,7 @@ static void printedges(const std::vector<std::pair<int, int>>& edgelist) {
   }
 
   printf("\n");
-  
+
 }
 
 int main(int argc, char* argv[])
@@ -293,11 +293,13 @@ int main(int argc, char* argv[])
   printf("ECLKarger v0.1 (%s)\n", __FILE__);
   printf("Copyright 2025-2026 Texas State University & University of Texas at Austin\n");
 
-  if (argc != 4) {fprintf(stderr, "USAGE: %s input_file_name num_permutations seed\n\n", argv[0]);  exit(-1);}
+  if (argc > 4 || argc < 3) {fprintf(stderr, "USAGE: %s input_file_name num_permutations seed[optional]\n\n", argv[0]);  exit(-1);}
 
   ECLgraph g = readECLgraph(argv[1]);
   const int numpermutations = std::stoi(argv[2]);
-  const int seed = std::stoi(argv[3]);
+
+  // if seed passed in then store, otherwise use default value
+  const int seed = argc > 3 ? std::stoi(argv[3]) : -1;
 
   printf("input graph: %d nodes and %d edges (%s)\n", g.nodes, g.edges, argv[1]);
   printf("average degree: %.2f edges per node\n", 1.0 * g.edges / g.nodes);
@@ -319,8 +321,10 @@ int main(int argc, char* argv[])
   std::vector< std::pair<int, int>> prefix = edgelist;
 
   // create random generator
-  std::random_device rd;
-  std::mt19937 gen(rd());
+    std::random_device rd;
+
+  // if seed > -1, then a value was passed in, otherwise use a random value
+  std::mt19937 gen( (seed != -1) ? seed: rd() );
 
   // generate nodestatus array to store cc count
   auto const nodestatus = new int [g.nodes];
