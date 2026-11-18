@@ -414,11 +414,20 @@ int main(int argc, char* argv[])
 
     }
 
-    // once the cut is found, see if the size of the cut is smaller than the edges
-    // found before
-    if ( edgelist.size() - edgecut.size() < prefix.size() )
+    std::vector< std::pair< int, int > > cut;
+
+    // once the cut is found, remove all edges containing vertices that are in the same
+    // connected component, and see if the prefix is smaller than the smallest being tracked
+    for (size_t i = edgecut.size(); i < edgelist.size(); i++ )
     {
-      prefix.assign( edgelist.begin() + static_cast<int>(edgecut.size()), edgelist.end() );
+      std::pair curpair = edgelist[i];
+
+      if (nodestatus[ curpair.first ] != nodestatus[ curpair.second ] ){ cut.push_back( curpair ); }
+    }
+
+    if ( cut.size() < prefix.size() )
+    {
+      prefix = cut;
     }
 
     // verify cc
