@@ -425,10 +425,7 @@ int main(int argc, char* argv[])
       if (nodestatus[ curpair.first ] != nodestatus[ curpair.second ] ){ cut.push_back( curpair ); }
     }
 
-    if ( cut.size() < prefix.size() )
-    {
-      prefix = cut;
-    }
+    if ( cut.size() < prefix.size() ) { prefix = cut; }
 
     // verify cc
     verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
