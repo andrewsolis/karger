@@ -331,8 +331,8 @@ int main(int argc, char* argv[])
   // get initial edgelist
   std::vector< std::pair<int, int> > edgelist = getedgelist(g.nodes, g.nindex, g.nlist);
 
-  // keep track of best edgecut found
-  std::vector< std::pair<int, int>> prefix = edgelist;
+  // keep track of cost of best edgecut found
+  int mincut = static_cast<int>(edgelist.size() );
 
   // create random generator
     std::random_device rd;
@@ -414,18 +414,19 @@ int main(int argc, char* argv[])
 
     }
 
-    std::vector< std::pair< int, int > > cut;
+    int currentcut = 0;
 
-    // once the cut is found, remove all edges containing vertices that are in the same
-    // connected component, and see if the prefix is smaller than the smallest being tracked
+    // count how many cuts are actually necessary and keep track of cut edges
     for (size_t i = edgecut.size(); i < edgelist.size(); i++ )
     {
       std::pair curpair = edgelist[i];
 
-      if (nodestatus[ curpair.first ] != nodestatus[ curpair.second ] ){ cut.push_back( curpair ); }
+      if (nodestatus[ curpair.first ] != nodestatus[ curpair.second ] ){ currentcut++; }
     }
 
-    if ( cut.size() < prefix.size() ) { prefix = cut; }
+    // if the currentcut cost is less than the mincut cost, set the mincut cost
+    // to now be the current cutcost
+    if ( currentcut < mincut ) { mincut = currentcut; }
 
     // verify cc
     verifycc(g.nodes, g.nindex, g.nlist, nodestatus, edgecut);
@@ -444,7 +445,7 @@ int main(int argc, char* argv[])
   double runtime = end.tv_sec + end.tv_usec / 1000000.0 - start.tv_sec - start.tv_usec / 1000000.0;
   printf("compute time: %.4f s\n", runtime);
 
-  printf("final edgecut size: %ld\n", prefix.size() );
+  printf("final edgecut cost: %d\n", mincut );
 
   delete[] nodestatus;
 
